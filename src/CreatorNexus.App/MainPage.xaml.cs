@@ -289,8 +289,12 @@ public partial class MainPage : ContentPage
             _english ? $"Media library • {entries.Count} entries" : $"Mediabibliotheek • {entries.Count} items",
             _english ? "Cancel" : "Annuleren", null,
             entries.Select((line, index) => $"{index + 1}. {GetMediaDisplayName(line)}").ToArray());
-        var selectedIndex = Array.FindIndex(entries.ToArray(), (line, index) =>
-            selectedEntry == $"{index + 1}. {GetMediaDisplayName(line)}");
+        var selectedIndex = entries
+            .Select((line, index) => new { line, index, label = $"{index + 1}. {GetMediaDisplayName(line)}" })
+            .Where(item => item.label == selectedEntry)
+            .Select(item => item.index)
+            .DefaultIfEmpty(-1)
+            .First();
         if (selectedIndex < 0) return;
 
         var selectedLine = entries[selectedIndex];
