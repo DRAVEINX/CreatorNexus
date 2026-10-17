@@ -17,7 +17,8 @@ public static class ProjectRules
         if (!string.IsNullOrEmpty(term))
             source = source.Where(p => p.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
                 || p.Channel.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || p.Notes.Contains(term, StringComparison.OrdinalIgnoreCase));
+                || p.Notes.Contains(term, StringComparison.OrdinalIgnoreCase)
+                || p.Tags.Contains(term, StringComparison.OrdinalIgnoreCase));
         return source.OrderByDescending(p => p.UpdatedAt).ToArray();
     }
 }
