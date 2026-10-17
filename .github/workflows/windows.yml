@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: windows-ci-\${{ github.ref }}
+  group: windows-ci-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   windows:
