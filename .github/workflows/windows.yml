@@ -4,6 +4,9 @@ on:
     branches: [main, master]
   pull_request:
   workflow_dispatch:
+concurrency:
+  group: windows-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   windows:
     runs-on: windows-latest
@@ -12,8 +15,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Install MAUI workload
-        run: dotnet workload install maui
+      - name: Install MAUI Windows workload
+        run: dotnet workload install maui-windows
       - name: Restore
         run: dotnet restore CreatorNexus.sln
       - name: Test shared core
