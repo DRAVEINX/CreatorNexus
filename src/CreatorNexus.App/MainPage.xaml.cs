@@ -9,6 +9,8 @@ public partial class MainPage : ContentPage
     private readonly ObservableCollection<CreatorProject> _visibleProjects = new();
     private bool _english;
     private bool _showArchived;
+    private bool _showFavoritesOnly;
+    private bool _showScheduleOnly;
 
     public MainPage()
     {
@@ -22,9 +24,21 @@ public partial class MainPage : ContentPage
     private async Task LoadProjectsAsync()
     {
         var projects = await _store.LoadAsync();
-        RenderProjects(ProjectRules.Search(
-            projects.Where(p => p.IsArchived == _showArchived),
-            ProjectSearchBar.Text));
+        RenderProjects(GetFilteredProjects(projects, ProjectSearchBar.Text));
+    }
+
+    private IEnumerable<CreatorProject> GetFilteredProjects(IEnumerable<CreatorProject> projects, string? searchText)
+    {
+        var filtered = projects.Where(p => p.IsArchived == _showArchived);
+        if (_showFavoritesOnly)
+            filtered = filtered.Where(p => p.IsFavorite);
+        if (_showScheduleOnly)
+            filtered = filtered.Where(p => p.ScheduledFor.HasValue);
+
+        var searched = ProjectRules.Search(filtered, searchText);
+        return _showScheduleOnly
+            ? searched.OrderBy(p => p.ScheduledFor)
+            : searched.OrderByDescending(p => p.IsFavorite).ThenByDescending(p => p.UpdatedAt);
     }
 
     private void RenderProjects(IEnumerable<CreatorProject> projects)
@@ -252,6 +266,23 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnToggleFavoritesFilterClicked(object sender, EventArgs e)
+    {
+        _showFavoritesOnly = !_showFavoritesOnly;
+        FavoriteFilterButton.BackgroundColor = _showFavoritesOnly ? Color.FromArgb("#59451D") : Color.FromArgb("#262638");
+        await LoadProjectsAsync();
+    }
+
+    private async void OnToggleScheduleViewClicked(object sender, EventArgs e)
+    {
+        _showScheduleOnly = !_showScheduleOnly;
+        ScheduleViewButton.BackgroundColor = _showScheduleOnly ? Color.FromArgb("#30264A") : Color.FromArgb("#262638");
+        ProjectsHeading.Text = _showScheduleOnly
+            ? (_english ? "Content calendar" : "Contentkalender")
+            : (_english ? "Your projects" : "Jouw projecten");
+        await LoadProjectsAsync();
+    }
+
     private async void OnToggleArchivedViewClicked(object sender, EventArgs e)
     {
         _showArchived = !_showArchived;
@@ -264,9 +295,7 @@ public partial class MainPage : ContentPage
     private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
         var projects = await _store.LoadAsync();
-        RenderProjects(ProjectRules.Search(
-            projects.Where(p => p.IsArchived == _showArchived),
-            e.NewTextValue));
+        RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
     }
 
     private void OnLanguageClicked(object sender, EventArgs e)
@@ -285,7 +314,9 @@ public partial class MainPage : ContentPage
             : "Bewaar ideeën, organiseer content en houd je volgende stap in zicht.";
         NewProjectEntry.Placeholder = _english ? "Name your new project…" : "Naam van je nieuwe project…";
         AddButton.Text = _english ? "+ New" : "+ Nieuw";
-        ProjectsHeading.Text = _english ? "Your projects" : "Jouw projecten";
+        ProjectsHeading.Text = _showScheduleOnly
+            ? (_english ? "Content calendar" : "Contentkalender")
+            : (_english ? "Your projects" : "Jouw projecten");
         ProjectSearchBar.Placeholder = _english ? "Search projects…" : "Zoek projecten…";
         EmptyTitleLabel.Text = _english ? "No projects here yet" : "Hier staan nog geen projecten";
         EmptySubtitleLabel.Text = _showArchived
