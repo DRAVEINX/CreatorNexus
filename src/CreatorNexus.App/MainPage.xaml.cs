@@ -81,6 +81,65 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnEditProjectClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var title = await DisplayPromptAsync(
+            _english ? "Edit project title" : "Projecttitel wijzigen",
+            _english ? "Choose a title (max. 120 characters)." : "Kies een titel (maximaal 120 tekens).",
+            _english ? "Next" : "Volgende",
+            _english ? "Cancel" : "Annuleren",
+            maxLength: 120,
+            initialValue: project.Title);
+
+        if (title is null)
+            return;
+
+        var titleError = ProjectRules.ValidateTitle(title);
+        if (!string.IsNullOrEmpty(titleError))
+        {
+            await DisplayAlertAsync(
+                _english ? "Invalid title" : "Ongeldige titel",
+                _english ? "Enter a non-empty title of up to 120 characters." : "Vul een titel in van maximaal 120 tekens.",
+                _english ? "OK" : "Oké");
+            return;
+        }
+
+        var channel = await DisplayPromptAsync(
+            _english ? "Edit channel" : "Kanaal wijzigen",
+            _english ? "Enter the platform or channel name." : "Vul de platform- of kanaalnaam in.",
+            _english ? "Save" : "Opslaan",
+            _english ? "Cancel" : "Annuleren",
+            maxLength: 120,
+            initialValue: project.Channel);
+
+        if (channel is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(channel) || channel.Trim().Length > 120)
+        {
+            await DisplayAlertAsync(
+                _english ? "Invalid channel" : "Ongeldig kanaal",
+                _english ? "Enter a channel name of 1 to 120 characters." : "Vul een kanaalnaam in van 1 tot 120 tekens.",
+                _english ? "OK" : "Oké");
+            return;
+        }
+
+        await _store.UpdateAsync(project with
+        {
+            Title = title.Trim(),
+            Channel = channel.Trim(),
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await LoadProjectsAsync();
+    }
+
     private async void OnEditNotesClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id)
