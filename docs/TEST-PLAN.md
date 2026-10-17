@@ -1,0 +1,21 @@
+# Phase 1 test plan
+
+## Automated tests
+- Reject null, blank and whitespace-only project titles.
+- Accept a valid title and reject titles longer than 120 characters.
+- Search titles case-insensitively.
+- Return all projects for an empty search query.
+
+## Manual acceptance checks
+1. Install and launch on an Android phone; confirm content fits in portrait and landscape.
+2. Install and launch on an Android tablet; confirm wider layout uses available screen space and controls remain usable.
+3. Launch on Windows; confirm the window opens, can be resized, and no controls are clipped.
+4. Create a project, close and reopen the app, and confirm it remains.
+5. Search by title and confirm results update.
+6. Advance status through the workflow and confirm it persists after restart.
+7. Toggle Dutch/English and confirm dashboard labels change.
+8. Check TalkBack/screen-reader labels, keyboard navigation, focus visibility, and text scaling.
+9. Inspect app-data isolation and confirm no MoodPress/KlaarKompas path or package ID is referenced.
+
+## Release gate
+Do not mark a release ready until automated tests and all applicable platform checks pass in CI and at least one real device per form factor is tested. A successful compile alone is not a substitute for manual acceptance checks.
