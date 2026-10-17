@@ -8,6 +8,7 @@ public partial class MainPage : ContentPage
     private readonly ProjectStore _store = new();
     private readonly ObservableCollection<CreatorProject> _visibleProjects = new();
     private bool _english;
+    private bool _showArchived;
 
     public MainPage()
     {
@@ -18,8 +19,13 @@ public partial class MainPage : ContentPage
         _ = LoadProjectsAsync();
     }
 
-    private async Task LoadProjectsAsync() =>
-        RenderProjects(ProjectRules.Search(await _store.LoadAsync(), ProjectSearchBar.Text));
+    private async Task LoadProjectsAsync()
+    {
+        var projects = await _store.LoadAsync();
+        RenderProjects(ProjectRules.Search(
+            projects.Where(p => p.IsArchived == _showArchived),
+            ProjectSearchBar.Text));
+    }
 
     private void RenderProjects(IEnumerable<CreatorProject> projects)
     {
@@ -54,6 +60,7 @@ public partial class MainPage : ContentPage
 
         NewProjectEntry.Text = string.Empty;
         ProjectSearchBar.Text = string.Empty;
+        _showArchived = false;
         await LoadProjectsAsync();
     }
 
@@ -103,8 +110,59 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
-    private async void OnSearchTextChanged(object sender, TextChangedEventArgs e) =>
-        RenderProjects(ProjectRules.Search(await _store.LoadAsync(), e.NewTextValue));
+    private async void OnToggleArchiveClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        await _store.UpdateAsync(project.WithArchived(!project.IsArchived));
+        await LoadProjectsAsync();
+    }
+
+    private async void OnDeleteProjectClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var confirmed = await DisplayAlertAsync(
+            _english ? "Delete project?" : "Project verwijderen?",
+            _english
+                ? $"“{project.Title}” and its notes will be permanently deleted."
+                : $"“{project.Title}” en de bijbehorende notities worden definitief verwijderd.",
+            _english ? "Delete" : "Verwijderen",
+            _english ? "Cancel" : "Annuleren");
+
+        if (!confirmed)
+            return;
+
+        await _store.DeleteAsync(id);
+        await LoadProjectsAsync();
+    }
+
+    private async void OnToggleArchivedViewClicked(object sender, EventArgs e)
+    {
+        _showArchived = !_showArchived;
+        ArchiveViewButton.Text = _showArchived
+            ? (_english ? "Active projects" : "Actieve projecten")
+            : (_english ? "Archive" : "Archief");
+        await LoadProjectsAsync();
+    }
+
+    private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        var projects = await _store.LoadAsync();
+        RenderProjects(ProjectRules.Search(
+            projects.Where(p => p.IsArchived == _showArchived),
+            e.NewTextValue));
+    }
 
     private void OnLanguageClicked(object sender, EventArgs e)
     {
@@ -124,15 +182,18 @@ public partial class MainPage : ContentPage
         AddButton.Text = _english ? "+ New" : "+ Nieuw";
         ProjectsHeading.Text = _english ? "Your projects" : "Jouw projecten";
         ProjectSearchBar.Placeholder = _english ? "Search projects…" : "Zoek projecten…";
-        EmptyTitleLabel.Text = _english ? "No projects yet" : "Nog geen projecten";
-        EmptySubtitleLabel.Text = _english
-            ? "Create your first creator project above."
-            : "Maak hierboven je eerste creatorproject.";
+        EmptyTitleLabel.Text = _english ? "No projects here yet" : "Hier staan nog geen projecten";
+        EmptySubtitleLabel.Text = _showArchived
+            ? (_english ? "Archived projects will appear here." : "Gearchiveerde projecten verschijnen hier.")
+            : (_english ? "Create your first creator project above." : "Maak hierboven je eerste creatorproject.");
         FooterLabel.Text = _english
             ? "Local storage • Offline ready • Free"
             : "Lokale opslag • Offline beschikbaar • Gratis";
+        ArchiveViewButton.Text = _showArchived
+            ? (_english ? "Active projects" : "Actieve projecten")
+            : (_english ? "Archive" : "Archief");
 
-        RenderProjects(ProjectRules.Search(_visibleProjects, ProjectSearchBar.Text));
+        _ = LoadProjectsAsync();
     }
 
     private void ApplyResponsiveLayout()
