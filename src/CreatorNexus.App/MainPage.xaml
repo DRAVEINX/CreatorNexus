@@ -52,6 +52,7 @@
                                     <Label Grid.Row="2" Grid.Column="0" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
                                     <Label Grid.Row="3" Grid.Column="0" Text="{Binding Notes}" FontSize="13" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
                                     <Button Grid.Column="1" Grid.Row="0" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
+                                    <Button Grid.Column="2" Grid.Row="0" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditProjectClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="1" Grid.Row="3" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="0" Grid.Row="4" Text="Archiveren / herstellen" CommandParameter="{Binding Id}" Clicked="OnToggleArchiveClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" HorizontalOptions="Start" />
                                     <Button Grid.Column="2" Grid.Row="4" Text="🗑" CommandParameter="{Binding Id}" Clicked="OnDeleteProjectClicked" BackgroundColor="#42252D" TextColor="White" CornerRadius="10" />
