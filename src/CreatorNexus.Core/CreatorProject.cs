@@ -8,6 +8,7 @@ public sealed record CreatorProject
     public string Title { get; init; } = string.Empty;
     public string Channel { get; init; } = string.Empty;
     public string Notes { get; init; } = string.Empty;
+    public string Tags { get; init; } = string.Empty;
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
     public bool IsArchived { get; init; }
     public bool IsFavorite { get; init; }
