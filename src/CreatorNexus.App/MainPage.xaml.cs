@@ -212,6 +212,55 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnAddMediaFileClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+
+        try
+        {
+            var file = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = _english ? "Choose a media file" : "Kies een mediabestand"
+            });
+            if (file is null) return;
+
+            var safeName = Path.GetFileName(file.FileName);
+            if (string.IsNullOrWhiteSpace(safeName))
+                safeName = "media-file";
+            var folder = Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusMedia");
+            Directory.CreateDirectory(folder);
+            var storedName = $"{Guid.NewGuid():N}_{safeName}";
+            var destination = Path.Combine(folder, storedName);
+            await using (var input = await file.OpenReadAsync())
+            await using (var output = File.Create(destination))
+                await input.CopyToAsync(output);
+
+            var reference = $"{safeName} | {destination}";
+            var updatedLibrary = string.IsNullOrWhiteSpace(project.MediaLibrary)
+                ? reference
+                : project.MediaLibrary + Environment.NewLine + reference;
+            await _store.UpdateAsync(project with
+            {
+                MediaLibrary = updatedLibrary,
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+            await LoadProjectsAsync();
+            await DisplayAlertAsync(
+                _english ? "Media added" : "Media toegevoegd",
+                _english ? $"Copied “{safeName}” into CreatorNexus app storage." : $"“{safeName}” is gekopieerd naar de opslag van CreatorNexus.",
+                _english ? "OK" : "Oké");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                _english ? "Could not add media" : "Media toevoegen mislukt",
+                _english ? $"The file could not be copied: {ex.Message}" : $"Het bestand kon niet worden gekopieerd: {ex.Message}",
+                _english ? "OK" : "Oké");
+        }
+    }
+
     private async void OnEditMediaLibraryClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id) return;

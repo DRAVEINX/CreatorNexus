@@ -40,3 +40,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Per-project media reference list for filenames, locations and URLs (references only; files are not uploaded or copied).
 
 - Thumbnail design preset editor with live preview, headline, subtitle and color themes (image export remains future work).
+
+- Native file picker to import media into app-private CreatorNexus storage and save file references per project. Deletion and media preview remain follow-up work.
