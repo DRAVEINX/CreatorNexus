@@ -200,6 +200,40 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnEditTagsClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var tags = await DisplayPromptAsync(
+            _english ? "Project tags" : "Projecttags",
+            _english ? "Separate tags with commas, for example gaming, tutorial, short." : "Scheid tags met komma's, bijvoorbeeld gaming, uitleg, short.",
+            _english ? "Save" : "Opslaan",
+            _english ? "Cancel" : "Annuleren",
+            placeholder: _english ? "tag1, tag2, tag3" : "tag1, tag2, tag3",
+            maxLength: 300,
+            initialValue: project.Tags);
+
+        if (tags is null)
+            return;
+
+        var normalizedTags = string.Join(", ",
+            tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(tag => tag.Length <= 40)
+                .Distinct(StringComparer.OrdinalIgnoreCase));
+
+        await _store.UpdateAsync(project with
+        {
+            Tags = normalizedTags,
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await LoadProjectsAsync();
+    }
+
     private async void OnEditNotesClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id)
