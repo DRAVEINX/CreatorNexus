@@ -26,9 +26,10 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                     <Label x:Name="ProjectsHeading" Text="Jouw projecten" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                     <Label x:Name="ProjectCountLabel" Grid.Column="1" Text="0 projecten" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                    <Button x:Name="ArchiveViewButton" Grid.Column="2" Text="Archief" Clicked="OnToggleArchivedViewClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="10" Padding="10,6" />
                 </Grid>
 
                 <SearchBar x:Name="ProjectSearchBar" Placeholder="Zoek projecten…" TextChanged="OnSearchTextChanged" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" PlaceholderColor="#9CA3AF" />
@@ -45,13 +46,15 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="core:CreatorProject">
                             <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="16" Margin="0,0,0,10" StrokeShape="RoundRectangle 16">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-                                    <Label Grid.Row="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation" />
-                                    <Label Grid.Row="1" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
-                                    <Label Grid.Row="2" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
-                                    <Label Grid.Row="3" Text="{Binding Notes}" FontSize="13" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
+                                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation" />
+                                    <Label Grid.Row="1" Grid.Column="0" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
+                                    <Label Grid.Row="2" Grid.Column="0" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
+                                    <Label Grid.Row="3" Grid.Column="0" Text="{Binding Notes}" FontSize="13" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
                                     <Button Grid.Column="1" Grid.Row="0" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
-                                    <Button Grid.Column="1" Grid.Row="4" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
+                                    <Button Grid.Column="1" Grid.Row="3" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
+                                    <Button Grid.Column="0" Grid.Row="4" Text="{Binding IsArchived, Converter={StaticResource ArchivedLabelConverter}}" CommandParameter="{Binding Id}" Clicked="OnToggleArchiveClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" HorizontalOptions="Start" />
+                                    <Button Grid.Column="2" Grid.Row="4" Text="🗑" CommandParameter="{Binding Id}" Clicked="OnDeleteProjectClicked" BackgroundColor="#42252D" TextColor="White" CornerRadius="10" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
