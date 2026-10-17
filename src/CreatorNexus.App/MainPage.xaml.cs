@@ -136,6 +136,13 @@ public partial class MainPage : ContentPage
         picker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
+        var exportButton = new Button
+        {
+            Text = _english ? "Export PNG and share" : "Exporteer PNG en delen",
+            BackgroundColor = Color.FromArgb("#155EAA"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var save = new Button { Text = _english ? "Save design" : "Ontwerp opslaan", BackgroundColor = Color.FromArgb("#7C3AED"), TextColor = Colors.White, CornerRadius = 12 };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
@@ -174,6 +181,27 @@ public partial class MainPage : ContentPage
         };
 
         var completion = new TaskCompletionSource<bool>();
+        exportButton.Clicked += async (_, _) =>
+        {
+            var headline = string.IsNullOrWhiteSpace(titleEntry.Text)
+                ? (_english ? "Your headline" : "Jouw koptekst")
+                : titleEntry.Text.Trim();
+            var subtitle = subtitleEntry.Text?.Trim() ?? string.Empty;
+            var theme = picker.SelectedItem?.ToString() ?? "Purple";
+            try
+            {
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme);
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
+                    File = new ShareFile(exportPath)
+                });
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Export failed" : "Exporteren mislukt", ex.Message, _english ? "OK" : "Oké");
+            }
+        };
         save.Clicked += async (_, _) =>
         {
             await Navigation.PopModalAsync();
@@ -195,6 +223,70 @@ public partial class MainPage : ContentPage
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
+    }
+
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme)
+    {
+        var background = theme switch
+        {
+            "Blue" => SKColor.Parse("#155EAA"),
+            "Orange" => SKColor.Parse("#C2410C"),
+            "Green" => SKColor.Parse("#166534"),
+            _ => SKColor.Parse("#6D28D9")
+        };
+        const int width = 1280;
+        const int height = 720;
+        using var bitmap = new SKBitmap(width, height);
+        using (var canvas = new SKCanvas(bitmap))
+        using (var panelPaint = new SKPaint { Color = new SKColor(12, 12, 24, 70), IsAntialias = true })
+        using (var titlePaint = new SKPaint { Color = SKColors.White, TextSize = 76, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
+        using (var subtitlePaint = new SKPaint { Color = new SKColor(245, 245, 255), TextSize = 34, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
+        using (var accentPaint = new SKPaint { Color = SKColors.White, IsAntialias = true })
+        {
+            canvas.Clear(background);
+            canvas.DrawRoundRect(new SKRoundRect(new SKRect(36, 36, width - 36, height - 36), 34, 34), panelPaint);
+            canvas.DrawRoundRect(new SKRoundRect(new SKRect(70, height - 96, width - 70, height - 82), 7, 7), accentPaint);
+            var titleLines = WrapThumbnailText(headline, titlePaint, width - 150).Take(3).ToArray();
+            var subtitleLines = WrapThumbnailText(subtitle, subtitlePaint, width - 180).Take(2).ToArray();
+            const float titleLineHeight = 88f;
+            const float subtitleLineHeight = 44f;
+            var totalHeight = titleLines.Length * titleLineHeight + (subtitleLines.Length > 0 ? 38 + subtitleLines.Length * subtitleLineHeight : 0);
+            var y = (height - totalHeight) / 2f + titleLineHeight * 0.78f;
+            foreach (var line in titleLines) { canvas.DrawText(line, width / 2f, y, titlePaint); y += titleLineHeight; }
+            if (subtitleLines.Length > 0)
+            {
+                y += 12;
+                foreach (var line in subtitleLines) { canvas.DrawText(line, width / 2f, y, subtitlePaint); y += subtitleLineHeight; }
+            }
+            canvas.Flush();
+        }
+        var folder = Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusExports");
+        Directory.CreateDirectory(folder);
+        var safeTitle = string.Concat(projectTitle.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));
+        if (string.IsNullOrWhiteSpace(safeTitle)) safeTitle = "thumbnail";
+        var path = Path.Combine(folder, $"{safeTitle}_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        await using var stream = File.Create(path);
+        data.SaveTo(stream);
+        return path;
+    }
+
+    private static IEnumerable<string> WrapThumbnailText(string text, SKPaint paint, float maxWidth)
+    {
+        if (string.IsNullOrWhiteSpace(text)) yield break;
+        var line = string.Empty;
+        foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var candidate = string.IsNullOrEmpty(line) ? word : $"{line} {word}";
+            if (line.Length > 0 && paint.MeasureText(candidate) > maxWidth)
+            {
+                yield return line;
+                line = word;
+            }
+            else line = candidate;
+        }
+        if (!string.IsNullOrWhiteSpace(line)) yield return line;
     }
 
     private async void OnEditScriptClicked(object sender, EventArgs e)

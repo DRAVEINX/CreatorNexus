@@ -39,6 +39,6 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Multiline script studio for hooks, scenes, dialogue and calls to action.
 - Per-project media reference list for filenames, locations and URLs (references only; files are not uploaded or copied).
 
-- Thumbnail design preset editor with live preview, headline, subtitle and color themes (image export remains future work).
+- Thumbnail design preset editor with live preview, headline, subtitle and color themes, plus PNG export at 1280×720. JPG export and custom image layers remain future work.
 
 - Native file picker to import media into app-private CreatorNexus storage and save file references per project. Deletion and media preview remain follow-up work.
