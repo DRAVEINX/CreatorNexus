@@ -140,6 +140,52 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnToggleFavoriteClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+        await _store.UpdateAsync(project with { IsFavorite = !project.IsFavorite, UpdatedAt = DateTimeOffset.UtcNow });
+        await LoadProjectsAsync();
+    }
+
+    private async void OnScheduleProjectClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+
+        var current = project.ScheduledFor?.ToLocalTime().ToString("dd-MM-yyyy") ?? string.Empty;
+        var dateText = await DisplayPromptAsync(
+            _english ? "Schedule content" : "Content inplannen",
+            _english ? "Enter a date as DD-MM-YYYY, or leave blank to clear it." : "Vul een datum in als DD-MM-JJJJ, of laat leeg om de planning te wissen.",
+            _english ? "Save" : "Opslaan",
+            _english ? "Cancel" : "Annuleren",
+            placeholder: "DD-MM-YYYY",
+            maxLength: 10,
+            initialValue: current);
+        if (dateText is null) return;
+
+        DateTimeOffset? scheduled = null;
+        if (!string.IsNullOrWhiteSpace(dateText))
+        {
+            if (!DateTime.TryParseExact(dateText.Trim(), "dd-MM-yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var date))
+            {
+                await DisplayAlertAsync(
+                    _english ? "Invalid date" : "Ongeldige datum",
+                    _english ? "Use DD-MM-YYYY, for example 25-12-2026." : "Gebruik DD-MM-JJJJ, bijvoorbeeld 25-12-2026.",
+                    _english ? "OK" : "Oké");
+                return;
+            }
+            scheduled = new DateTimeOffset(date.Date, TimeZoneInfo.Local.GetUtcOffset(date.Date));
+        }
+
+        await _store.UpdateAsync(project with { ScheduledFor = scheduled, UpdatedAt = DateTimeOffset.UtcNow });
+        await LoadProjectsAsync();
+    }
+
     private async void OnEditNotesClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id)

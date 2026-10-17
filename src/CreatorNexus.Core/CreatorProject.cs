@@ -10,6 +10,8 @@ public sealed record CreatorProject
     public string Notes { get; init; } = string.Empty;
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
     public bool IsArchived { get; init; }
+    public bool IsFavorite { get; init; }
+    public DateTimeOffset? ScheduledFor { get; init; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; init; } = DateTimeOffset.UtcNow;
 
