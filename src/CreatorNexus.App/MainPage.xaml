@@ -1,11 +1,63 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="CreatorNexus.App.MainPage" BackgroundColor="{StaticResource AppBackground}">
-<Grid RowDefinitions="Auto,*" Padding="20" RowSpacing="18">
-<Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12"><VerticalStackLayout Spacing="3"><Label Text="CreatorNexus" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/><Label x:Name="SubtitleLabel" Text="Jouw creatieve commandocentrum" FontSize="13" TextColor="{StaticResource TextMuted}"/></VerticalStackLayout><Button x:Name="LanguageButton" Grid.Column="1" Text="EN" Clicked="OnLanguageClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="12"/></Grid>
-<ScrollView Grid.Row="1"><VerticalStackLayout Spacing="18">
-<Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="18" StrokeShape="RoundRectangle 18"><VerticalStackLayout Spacing="12"><Label x:Name="WelcomeLabel" Text="Maak van ideeën echte projecten." FontSize="21" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/><Label x:Name="IntroLabel" Text="Bewaar ideeën, organiseer content en houd je volgende stap in zicht." FontSize="14" TextColor="{StaticResource TextMuted}"/><Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><Entry x:Name="NewProjectEntry" Placeholder="Naam van je nieuwe project…" ReturnType="Done" BackgroundColor="#262638" TextColor="White" PlaceholderColor="#9CA3AF"/><Button x:Name="AddButton" Grid.Column="1" Text="+ Nieuw" Clicked="OnAddProjectClicked" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" CornerRadius="12"/></Grid></VerticalStackLayout></Border>
-<Grid ColumnDefinitions="*,Auto" ColumnSpacing="10"><Label x:Name="ProjectsHeading" Text="Jouw projecten" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center"/><Label x:Name="ProjectCountLabel" Grid.Column="1" Text="0 projecten" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center"/></Grid>
-<SearchBar x:Name="ProjectSearchBar" Placeholder="Zoek projecten…" TextChanged="OnSearchTextChanged" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" PlaceholderColor="#9CA3AF"/>
-<CollectionView x:Name="ProjectsCollection" SelectionMode="None"><CollectionView.EmptyView><Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="20" StrokeShape="RoundRectangle 16"><VerticalStackLayout Spacing="6"><Label x:Name="EmptyTitleLabel" Text="Nog geen projecten" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}"/><Label x:Name="EmptySubtitleLabel" Text="Maak hierboven je eerste creatorproject." FontSize="13" TextColor="{StaticResource TextMuted}"/></VerticalStackLayout></Border></CollectionView.EmptyView><CollectionView.ItemTemplate><DataTemplate><Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="16" Margin="0,0,0,10" StrokeShape="RoundRectangle 16"><Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8"><Label Grid.Row="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation"/><Label Grid.Row="1" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}"/><Label Grid.Row="2" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD"/><Button Grid.Column="1" Grid.RowSpan="3" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center"/></Grid></Border></DataTemplate></CollectionView.ItemTemplate></CollectionView>
-<Label x:Name="FooterLabel" Text="Lokale opslag • Offline beschikbaar • Gratis" FontSize="12" TextColor="{StaticResource TextMuted}" HorizontalTextAlignment="Center" Margin="0,8,0,12"/>
-</VerticalStackLayout></ScrollView></Grid></ContentPage>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:core="clr-namespace:CreatorNexus.Core;assembly=CreatorNexus.Core"
+             x:Class="CreatorNexus.App.MainPage"
+             BackgroundColor="{StaticResource AppBackground}">
+    <Grid RowDefinitions="Auto,*" Padding="20" RowSpacing="18">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <VerticalStackLayout Spacing="3">
+                <Label Text="CreatorNexus" FontSize="28" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                <Label x:Name="SubtitleLabel" Text="Jouw creatieve commandocentrum" FontSize="13" TextColor="{StaticResource TextMuted}" />
+            </VerticalStackLayout>
+            <Button x:Name="LanguageButton" Grid.Column="1" Text="EN" Clicked="OnLanguageClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="12" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="18">
+                <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="18" StrokeShape="RoundRectangle 18">
+                    <VerticalStackLayout Spacing="12">
+                        <Label x:Name="WelcomeLabel" Text="Maak van ideeën echte projecten." FontSize="21" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                        <Label x:Name="IntroLabel" Text="Bewaar ideeën, organiseer content en houd je volgende stap in zicht." FontSize="14" TextColor="{StaticResource TextMuted}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry x:Name="NewProjectEntry" Placeholder="Naam van je nieuwe project…" ReturnType="Done" BackgroundColor="#262638" TextColor="White" PlaceholderColor="#9CA3AF" />
+                            <Button x:Name="AddButton" Grid.Column="1" Text="+ Nieuw" Clicked="OnAddProjectClicked" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" CornerRadius="12" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <Label x:Name="ProjectsHeading" Text="Jouw projecten" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
+                    <Label x:Name="ProjectCountLabel" Grid.Column="1" Text="0 projecten" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
+                </Grid>
+
+                <SearchBar x:Name="ProjectSearchBar" Placeholder="Zoek projecten…" TextChanged="OnSearchTextChanged" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" PlaceholderColor="#9CA3AF" />
+
+                <CollectionView x:Name="ProjectsCollection" SelectionMode="None">
+                    <CollectionView.EmptyView>
+                        <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="20" StrokeShape="RoundRectangle 16">
+                            <VerticalStackLayout Spacing="6">
+                                <Label x:Name="EmptyTitleLabel" Text="Nog geen projecten" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
+                                <Label x:Name="EmptySubtitleLabel" Text="Maak hierboven je eerste creatorproject." FontSize="13" TextColor="{StaticResource TextMuted}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </CollectionView.EmptyView>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="core:CreatorProject">
+                            <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="16" Margin="0,0,0,10" StrokeShape="RoundRectangle 16">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                    <Label Grid.Row="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation" />
+                                    <Label Grid.Row="1" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
+                                    <Label Grid.Row="2" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
+                                    <Button Grid.Column="1" Grid.RowSpan="3" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Label x:Name="FooterLabel" Text="Lokale opslag • Offline beschikbaar • Gratis" FontSize="12" TextColor="{StaticResource TextMuted}" HorizontalTextAlignment="Center" Margin="0,8,0,12" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
