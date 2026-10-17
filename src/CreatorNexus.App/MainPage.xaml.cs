@@ -86,6 +86,15 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             BackgroundColor = Color.FromArgb("#262638")
         };
+        var alignments = new[] { "Center", "Left", "Right" };
+        var alignmentPicker = new Picker
+        {
+            Title = _english ? "Text alignment" : "Tekstuitlijning",
+            ItemsSource = alignments,
+            SelectedItem = alignments.Contains(project.ThumbnailTextAlignment) ? project.ThumbnailTextAlignment : "Center",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var previewHeadline = new Label
         {
             Text = titleEntry.Text,
@@ -137,6 +146,14 @@ public partial class MainPage : ContentPage
         {
             previewHeadline.Text = string.IsNullOrWhiteSpace(titleEntry.Text) ? (_english ? "Your headline" : "Jouw koptekst") : titleEntry.Text;
             previewSubtitle.Text = subtitleEntry.Text ?? string.Empty;
+            var textAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center";
+            previewHeadline.HorizontalTextAlignment = textAlignment switch
+            {
+                "Left" => TextAlignment.Start,
+                "Right" => TextAlignment.End,
+                _ => TextAlignment.Center
+            };
+            previewSubtitle.HorizontalTextAlignment = previewHeadline.HorizontalTextAlignment;
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             preview.BackgroundColor = Color.FromArgb(theme switch
             {
@@ -149,6 +166,7 @@ public partial class MainPage : ContentPage
         titleEntry.TextChanged += (_, _) => RefreshPreview();
         subtitleEntry.TextChanged += (_, _) => RefreshPreview();
         picker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        alignmentPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
         string? selectedImagePath = project.ThumbnailImagePath;
@@ -231,6 +249,8 @@ public partial class MainPage : ContentPage
                         subtitleEntry,
                         new Label { Text = _english ? "Color theme" : "Kleurthema", TextColor = Colors.White },
                         picker,
+                        new Label { Text = _english ? "Text alignment" : "Tekstuitlijning", TextColor = Colors.White },
+                        alignmentPicker,
                         chooseImageButton,
                         exportButton,
                         exportJpegButton,
@@ -251,7 +271,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -272,7 +292,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, true);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", true);
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
@@ -303,12 +323,13 @@ public partial class MainPage : ContentPage
             ThumbnailSubtitle = subtitleEntry.Text?.Trim() ?? string.Empty,
             ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
             ThumbnailImagePath = selectedImagePath,
+            ThumbnailTextAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center",
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, bool jpeg = false)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", bool jpeg = false)
     {
         var background = theme switch
         {
@@ -326,6 +347,20 @@ public partial class MainPage : ContentPage
         using (var subtitlePaint = new SKPaint { Color = new SKColor(245, 245, 255), TextSize = 34, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
         using (var accentPaint = new SKPaint { Color = SKColors.White, IsAntialias = true })
         {
+            var skTextAlignment = textAlignment switch
+            {
+                "Left" => SKTextAlign.Left,
+                "Right" => SKTextAlign.Right,
+                _ => SKTextAlign.Center
+            };
+            titlePaint.TextAlign = skTextAlignment;
+            subtitlePaint.TextAlign = skTextAlignment;
+            var textX = textAlignment switch
+            {
+                "Left" => 120f,
+                "Right" => width - 120f,
+                _ => width / 2f
+            };
             var mediaFolder = Path.GetFullPath(Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusMedia")) + Path.DirectorySeparatorChar;
             var safeImagePath = string.IsNullOrWhiteSpace(imagePath) ? null : Path.GetFullPath(imagePath);
             if (safeImagePath is not null && safeImagePath.StartsWith(mediaFolder, StringComparison.OrdinalIgnoreCase) && File.Exists(safeImagePath))
@@ -351,11 +386,11 @@ public partial class MainPage : ContentPage
             const float subtitleLineHeight = 44f;
             var totalHeight = titleLines.Length * titleLineHeight + (subtitleLines.Length > 0 ? 38 + subtitleLines.Length * subtitleLineHeight : 0);
             var y = (height - totalHeight) / 2f + titleLineHeight * 0.78f;
-            foreach (var line in titleLines) { canvas.DrawText(line, width / 2f, y, titlePaint); y += titleLineHeight; }
+            foreach (var line in titleLines) { canvas.DrawText(line, textX, y, titlePaint); y += titleLineHeight; }
             if (subtitleLines.Length > 0)
             {
                 y += 12;
-                foreach (var line in subtitleLines) { canvas.DrawText(line, width / 2f, y, subtitlePaint); y += subtitleLineHeight; }
+                foreach (var line in subtitleLines) { canvas.DrawText(line, textX, y, subtitlePaint); y += subtitleLineHeight; }
             }
             canvas.Flush();
         }
