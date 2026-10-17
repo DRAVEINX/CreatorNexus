@@ -95,6 +95,33 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             BackgroundColor = Color.FromArgb("#262638")
         };
+        var titleSizes = new[] { "Small", "Medium", "Large" };
+        var titleSizePicker = new Picker
+        {
+            Title = _english ? "Headline size" : "Grootte koptekst",
+            ItemsSource = titleSizes,
+            SelectedItem = titleSizes.Contains(project.ThumbnailTitleSize) ? project.ThumbnailTitleSize : "Medium",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
+        var subtitleSizes = new[] { "Small", "Medium", "Large" };
+        var subtitleSizePicker = new Picker
+        {
+            Title = _english ? "Subtitle size" : "Grootte ondertitel",
+            ItemsSource = subtitleSizes,
+            SelectedItem = subtitleSizes.Contains(project.ThumbnailSubtitleSize) ? project.ThumbnailSubtitleSize : "Medium",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
+        var layouts = new[] { "Center", "Bottom banner", "Top banner" };
+        var layoutPicker = new Picker
+        {
+            Title = _english ? "Layout" : "Indeling",
+            ItemsSource = layouts,
+            SelectedItem = layouts.Contains(project.ThumbnailLayout) ? project.ThumbnailLayout : "Center",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var previewHeadline = new Label
         {
             Text = titleEntry.Text,
@@ -154,6 +181,17 @@ public partial class MainPage : ContentPage
                 _ => TextAlignment.Center
             };
             previewSubtitle.HorizontalTextAlignment = previewHeadline.HorizontalTextAlignment;
+            previewHeadline.FontSize = titleSizePicker.SelectedItem?.ToString() switch { "Small" => 18, "Large" => 30, _ => 24 };
+            previewSubtitle.FontSize = subtitleSizePicker.SelectedItem?.ToString() switch { "Small" => 11, "Large" => 18, _ => 14 };
+            var layout = layoutPicker.SelectedItem?.ToString() ?? "Center";
+            var previewStack = (VerticalStackLayout)((Grid)preview.Content).Children[1];
+            previewStack.VerticalOptions = layout switch
+            {
+                "Top banner" => LayoutOptions.Start,
+                "Bottom banner" => LayoutOptions.End,
+                _ => LayoutOptions.Center
+            };
+            previewStack.Padding = layout == "Center" ? new Thickness(0) : new Thickness(0, 8);
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             preview.BackgroundColor = Color.FromArgb(theme switch
             {
@@ -167,6 +205,9 @@ public partial class MainPage : ContentPage
         subtitleEntry.TextChanged += (_, _) => RefreshPreview();
         picker.SelectedIndexChanged += (_, _) => RefreshPreview();
         alignmentPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        titleSizePicker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        subtitleSizePicker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        layoutPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
         string? selectedImagePath = project.ThumbnailImagePath;
@@ -251,6 +292,12 @@ public partial class MainPage : ContentPage
                         picker,
                         new Label { Text = _english ? "Text alignment" : "Tekstuitlijning", TextColor = Colors.White },
                         alignmentPicker,
+                        new Label { Text = _english ? "Headline size" : "Grootte koptekst", TextColor = Colors.White },
+                        titleSizePicker,
+                        new Label { Text = _english ? "Subtitle size" : "Grootte ondertitel", TextColor = Colors.White },
+                        subtitleSizePicker,
+                        new Label { Text = _english ? "Layout" : "Indeling", TextColor = Colors.White },
+                        layoutPicker,
                         chooseImageButton,
                         exportButton,
                         exportJpegButton,
@@ -271,7 +318,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center");
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -292,7 +339,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", true);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", true);
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
@@ -324,12 +371,15 @@ public partial class MainPage : ContentPage
             ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
             ThumbnailImagePath = selectedImagePath,
             ThumbnailTextAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center",
+            ThumbnailTitleSize = titleSizePicker.SelectedItem?.ToString() ?? "Medium",
+            ThumbnailSubtitleSize = subtitleSizePicker.SelectedItem?.ToString() ?? "Medium",
+            ThumbnailLayout = layoutPicker.SelectedItem?.ToString() ?? "Center",
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", bool jpeg = false)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", bool jpeg = false)
     {
         var background = theme switch
         {
@@ -343,8 +393,8 @@ public partial class MainPage : ContentPage
         using var bitmap = new SKBitmap(width, height);
         using (var canvas = new SKCanvas(bitmap))
         using (var panelPaint = new SKPaint { Color = new SKColor(12, 12, 24, 70), IsAntialias = true })
-        using (var titlePaint = new SKPaint { Color = SKColors.White, TextSize = 76, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
-        using (var subtitlePaint = new SKPaint { Color = new SKColor(245, 245, 255), TextSize = 34, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
+        using (var titlePaint = new SKPaint { Color = SKColors.White, TextSize = titleSize switch { "Small" => 60, "Large" => 92, _ => 76 }, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
+        using (var subtitlePaint = new SKPaint { Color = new SKColor(245, 245, 255), TextSize = subtitleSize switch { "Small" => 26, "Large" => 42, _ => 34 }, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
         using (var accentPaint = new SKPaint { Color = SKColors.White, IsAntialias = true })
         {
             var skTextAlignment = textAlignment switch
@@ -385,7 +435,12 @@ public partial class MainPage : ContentPage
             const float titleLineHeight = 88f;
             const float subtitleLineHeight = 44f;
             var totalHeight = titleLines.Length * titleLineHeight + (subtitleLines.Length > 0 ? 38 + subtitleLines.Length * subtitleLineHeight : 0);
-            var y = (height - totalHeight) / 2f + titleLineHeight * 0.78f;
+            var y = layout switch
+            {
+                "Top banner" => 110f + titleLineHeight * 0.78f,
+                "Bottom banner" => height - totalHeight - 100f + titleLineHeight * 0.78f,
+                _ => (height - totalHeight) / 2f + titleLineHeight * 0.78f
+            };
             foreach (var line in titleLines) { canvas.DrawText(line, textX, y, titlePaint); y += titleLineHeight; }
             if (subtitleLines.Length > 0)
             {

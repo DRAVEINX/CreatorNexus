@@ -42,3 +42,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Thumbnail designer with live preview, headline, subtitle, color themes, user-selected background image, left/center/right text alignment and PNG/JPG export at 1280×720.
 
 - Native file picker to import media into app-private CreatorNexus storage and save file references per project. Media-library deletion and broader media preview remain follow-up work.
+
+- Thumbnail-editor enhancement: persisted small/medium/large headline and subtitle sizes, plus centered, top-banner and bottom-banner layouts, applied to preview and PNG/JPG export.
