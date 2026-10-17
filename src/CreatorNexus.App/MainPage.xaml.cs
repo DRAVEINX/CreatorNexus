@@ -194,6 +194,13 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var exportJpegButton = new Button
+        {
+            Text = _english ? "Export JPG and share" : "Exporteer JPG en delen",
+            BackgroundColor = Color.FromArgb("#166534"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var save = new Button { Text = _english ? "Save design" : "Ontwerp opslaan", BackgroundColor = Color.FromArgb("#7C3AED"), TextColor = Colors.White, CornerRadius = 12 };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
@@ -254,6 +261,27 @@ public partial class MainPage : ContentPage
                 await DisplayAlertAsync(_english ? "Export failed" : "Exporteren mislukt", ex.Message, _english ? "OK" : "Oké");
             }
         };
+        exportJpegButton.Clicked += async (_, _) =>
+        {
+            var headline = string.IsNullOrWhiteSpace(titleEntry.Text)
+                ? (_english ? "Your headline" : "Jouw koptekst")
+                : titleEntry.Text.Trim();
+            var subtitle = subtitleEntry.Text?.Trim() ?? string.Empty;
+            var theme = picker.SelectedItem?.ToString() ?? "Purple";
+            try
+            {
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, true);
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
+                    File = new ShareFile(exportPath)
+                });
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Export failed" : "Exporteren mislukt", ex.Message, _english ? "OK" : "Oké");
+            }
+        };
         save.Clicked += async (_, _) =>
         {
             await Navigation.PopModalAsync();
@@ -278,7 +306,7 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, bool jpeg = false)
     {
         var background = theme switch
         {
@@ -333,9 +361,10 @@ public partial class MainPage : ContentPage
         Directory.CreateDirectory(folder);
         var safeTitle = string.Concat(projectTitle.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch));
         if (string.IsNullOrWhiteSpace(safeTitle)) safeTitle = "thumbnail";
-        var path = Path.Combine(folder, $"{safeTitle}_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+        var extension = jpeg ? "jpg" : "png";
+        var path = Path.Combine(folder, $"{safeTitle}_{DateTime.Now:yyyyMMdd_HHmmss}.{extension}");
         using var image = SKImage.FromBitmap(bitmap);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        using var data = image.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, jpeg ? 92 : 100);
         await using var stream = File.Create(path);
         data.SaveTo(stream);
         return path;
