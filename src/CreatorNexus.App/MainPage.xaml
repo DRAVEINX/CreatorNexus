@@ -45,11 +45,13 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="core:CreatorProject">
                             <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="16" Margin="0,0,0,10" StrokeShape="RoundRectangle 16">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
                                     <Label Grid.Row="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation" />
                                     <Label Grid.Row="1" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
                                     <Label Grid.Row="2" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
-                                    <Button Grid.Column="1" Grid.RowSpan="3" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
+                                    <Label Grid.Row="3" Text="{Binding Notes}" FontSize="13" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
+                                    <Button Grid.Column="1" Grid.Row="0" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
+                                    <Button Grid.Column="1" Grid.Row="4" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
