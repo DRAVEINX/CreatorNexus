@@ -19,9 +19,10 @@
                     <VerticalStackLayout Spacing="12">
                         <Label x:Name="WelcomeLabel" Text="Maak van ideeën echte projecten." FontSize="21" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
                         <Label x:Name="IntroLabel" Text="Bewaar ideeën, organiseer content en houd je volgende stap in zicht." FontSize="14" TextColor="{StaticResource TextMuted}" />
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                             <Entry x:Name="NewProjectEntry" Placeholder="Naam van je nieuwe project…" ReturnType="Done" BackgroundColor="#262638" TextColor="White" PlaceholderColor="#9CA3AF" />
-                            <Button x:Name="AddButton" Grid.Column="1" Text="+ Nieuw" Clicked="OnAddProjectClicked" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" CornerRadius="12" />
+                            <Button x:Name="TemplateButton" Grid.Column="1" Text="Sjabloon" Clicked="OnCreateFromTemplateClicked" BackgroundColor="#30264A" TextColor="White" CornerRadius="12" />
+                            <Button x:Name="AddButton" Grid.Column="2" Text="+ Nieuw" Clicked="OnAddProjectClicked" BackgroundColor="{StaticResource AccentPurple}" TextColor="White" CornerRadius="12" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
@@ -56,6 +57,7 @@
                                     <Label Grid.Row="4" Grid.Column="0" Text="{Binding ScheduledFor, StringFormat='Gepland: {0:dd-MM-yyyy}'}" FontSize="12" TextColor="#A5B4FC" />
                                     <Label Grid.Row="5" Grid.Column="0" Text="{Binding Tags, StringFormat='Tags: {0}'}" FontSize="12" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
                                     <Button Grid.Column="1" Grid.Row="5" Text="# Tags" CommandParameter="{Binding Id}" Clicked="OnEditTagsClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" VerticalOptions="Center" />
+                                    <Button Grid.Column="2" Grid.Row="5" Text="☑" CommandParameter="{Binding Id}" Clicked="OnEditChecklistClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" VerticalOptions="Center" />
                                     <Button Grid.Column="1" Grid.Row="0" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="2" Grid.Row="0" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditProjectClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="1" Grid.Row="3" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />

@@ -52,6 +52,68 @@ public partial class MainPage : ContentPage
             : $"{_visibleProjects.Count} projecten";
     }
 
+    private async void OnCreateFromTemplateClicked(object sender, EventArgs e)
+    {
+        var choices = _english
+            ? new[] { "YouTube video", "Short-form video", "Tutorial", "Livestream", "Cancel" }
+            : new[] { "YouTube-video", "Korte video", "Tutorial", "Livestream", "Annuleren" };
+        var selected = await DisplayActionSheet(
+            _english ? "Choose a project template" : "Kies een projectsjabloon",
+            _english ? "Cancel" : "Annuleren",
+            null,
+            choices.Take(choices.Length - 1).ToArray());
+        if (string.IsNullOrWhiteSpace(selected) || selected == (_english ? "Cancel" : "Annuleren"))
+            return;
+
+        var isShort = selected == (_english ? "Short-form video" : "Korte video");
+        var isTutorial = selected == "Tutorial";
+        var isLive = selected == "Livestream";
+        var project = new CreatorProject
+        {
+            Title = selected,
+            Channel = isLive ? "Twitch / YouTube" : "YouTube",
+            Tags = isShort ? "short, video" : isTutorial ? "tutorial, uitleg" : isLive ? "live, stream" : "video, creator",
+            Notes = _english
+                ? "Add the idea, audience and call to action here."
+                : "Vul hier het idee, de doelgroep en de oproep tot actie in.",
+            Checklist = _english
+                ? "Define the idea\nPrepare script or outline\nRecord or create\nEdit and review\nPrepare title and thumbnail\nPublish and share"
+                : "Idee bepalen\nScript of opzet voorbereiden\nOpnemen of maken\nMonteren en controleren\nTitel en thumbnail voorbereiden\nPubliceren en delen"
+        };
+        await _store.AddAsync(project);
+        _showArchived = false;
+        _showFavoritesOnly = false;
+        _showScheduleOnly = false;
+        ProjectSearchBar.Text = string.Empty;
+        await LoadProjectsAsync();
+    }
+
+    private async void OnEditChecklistClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var checklist = await DisplayPromptAsync(
+            _english ? "Production checklist" : "Productiechecklist",
+            _english ? "Enter one task per line. Use [x] to mark a completed task." : "Vul één taak per regel in. Gebruik [x] om een afgeronde taak te markeren.",
+            _english ? "Save" : "Opslaan",
+            _english ? "Cancel" : "Annuleren",
+            maxLength: 3000,
+            initialValue: project.Checklist);
+        if (checklist is null)
+            return;
+
+        await _store.UpdateAsync(project with
+        {
+            Checklist = checklist.Trim(),
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await LoadProjectsAsync();
+    }
+
     private async void OnAddProjectClicked(object sender, EventArgs e)
     {
         var title = NewProjectEntry.Text;
@@ -348,6 +410,7 @@ public partial class MainPage : ContentPage
             : "Bewaar ideeën, organiseer content en houd je volgende stap in zicht.";
         NewProjectEntry.Placeholder = _english ? "Name your new project…" : "Naam van je nieuwe project…";
         AddButton.Text = _english ? "+ New" : "+ Nieuw";
+        TemplateButton.Text = _english ? "Template" : "Sjabloon";
         ProjectsHeading.Text = _showScheduleOnly
             ? (_english ? "Content calendar" : "Contentkalender")
             : (_english ? "Your projects" : "Jouw projecten");
