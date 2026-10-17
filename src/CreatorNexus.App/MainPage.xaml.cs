@@ -232,7 +232,9 @@ public partial class MainPage : ContentPage
                         new Label { Text = _english ? "Color theme" : "Kleurthema", TextColor = Colors.White },
                         picker,
                         chooseImageButton,
-                        new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
+                        exportButton,
+                        exportJpegButton,
+                        new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
                         buttons
                     }
                 }
