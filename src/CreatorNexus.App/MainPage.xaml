@@ -51,7 +51,7 @@
                                     <Label Grid.Row="1" Grid.Column="0" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
                                     <Label Grid.Row="2" Grid.Column="0" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
                                     <Label Grid.Row="3" Grid.Column="0" Text="{Binding Notes}" FontSize="13" TextColor="{StaticResource TextMuted}" LineBreakMode="WordWrap" />
-                                    <Label Grid.Row="4" Grid.Column="0" Text="{Binding ScheduledFor, StringFormat=\'Gepland: {0:dd-MM-yyyy}\'}" FontSize="12" TextColor="#A5B4FC" />
+                                    <Label Grid.Row="4" Grid.Column="0" Text="{Binding ScheduledFor, StringFormat='Gepland: {0:dd-MM-yyyy}'}" FontSize="12" TextColor="#A5B4FC" />
                                     <Button Grid.Column="1" Grid.Row="0" Text="✓" CommandParameter="{Binding Id}" Clicked="OnAdvanceStatusClicked" BackgroundColor="#30264A" TextColor="#DDD6FE" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="2" Grid.Row="0" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditProjectClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="1" Grid.Row="3" Text="✎" CommandParameter="{Binding Id}" Clicked="OnEditNotesClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" VerticalOptions="Center" />
