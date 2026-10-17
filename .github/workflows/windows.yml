@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: windows-ci-${{ github.ref }}
+  group: windows-ci-\${{ github.ref }}
   cancel-in-progress: true
 jobs:
   windows:
@@ -21,5 +21,18 @@ jobs:
         run: dotnet restore CreatorNexus.sln
       - name: Test shared core
         run: dotnet test tests/CreatorNexus.Core.Tests/CreatorNexus.Core.Tests.csproj --configuration Release
-      - name: Build Windows
-        run: dotnet build src/CreatorNexus.App/CreatorNexus.App.csproj -f net10.0-windows10.0.19041.0 --configuration Release
+      - name: Publish Windows portable test build
+        run: dotnet publish src/CreatorNexus.App/CreatorNexus.App.csproj -f net10.0-windows10.0.19041.0 --configuration Release -p:RuntimeIdentifierOverride=win-x64 -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true --output artifacts/windows
+      - name: Verify and archive Windows build
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path artifacts/windows -Recurse -Filter *.exe | Select-Object -First 1
+          if (-not $exe) { throw "Windows executable was not generated." }
+          Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/CreatorNexus-Windows-Portable-TestBuild.zip" -Force
+      - name: Upload Windows portable test build
+        uses: actions/upload-artifact@v4
+        with:
+          name: CreatorNexus-Windows-Portable-TestBuild
+          path: artifacts/CreatorNexus-Windows-Portable-TestBuild.zip
+          if-no-files-found: error
+          retention-days: 14

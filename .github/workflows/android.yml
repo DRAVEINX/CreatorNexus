@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: android-ci-${{ github.ref }}
+  group: android-ci-\${{ github.ref }}
   cancel-in-progress: true
 jobs:
   android:
@@ -21,5 +21,18 @@ jobs:
         run: dotnet restore CreatorNexus.sln
       - name: Test shared core
         run: dotnet test tests/CreatorNexus.Core.Tests/CreatorNexus.Core.Tests.csproj --configuration Release
-      - name: Build Android
-        run: dotnet build src/CreatorNexus.App/CreatorNexus.App.csproj -f net10.0-android --configuration Release
+      - name: Publish Android packages
+        run: dotnet publish src/CreatorNexus.App/CreatorNexus.App.csproj -f net10.0-android --configuration Release --output artifacts/android
+      - name: Verify APK and AAB
+        shell: bash
+        run: |
+          test -n "$(find artifacts/android -type f -name '*.apk' -print -quit)" || { echo "APK was not generated"; exit 1; }
+          test -n "$(find artifacts/android -type f -name '*.aab' -print -quit)" || { echo "AAB was not generated"; exit 1; }
+          echo "Android APK and AAB were generated."
+      - name: Upload Android packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: CreatorNexus-Android-TestPackages
+          path: artifacts/android/
+          if-no-files-found: error
+          retention-days: 14
