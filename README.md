@@ -2,7 +2,7 @@
 
 **A free-first creator workspace for Android phones, Android tablets and Windows.**
 
-Phase 1 starter source package. It includes a dark dashboard, Dutch/English UI toggle, local project creation, listing, status updates, search, shared domain rules, unit tests, and separate Android/Windows GitHub Actions workflows.
+Starter implementation with a dark dashboard, Dutch/English UI toggle, local project creation and editing, project notes, tags and tag-aware search, favorites, archive/restore/delete, scheduled content, a date-ordered content view, reusable starter templates (YouTube video, short-form video, tutorial, livestream), and per-project production checklists. Includes shared domain rules, unit tests, and separate Android/Windows GitHub Actions workflows.
 
 ## Requirements
 - .NET 10 SDK

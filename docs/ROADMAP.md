@@ -24,3 +24,14 @@
 - Optional cloud sync only after conflict resolution, encryption, account security and deletion behavior are designed
 
 The roadmap items above are planned work, not features already present in the Phase 1 code.
+
+
+## Implemented in the current starter
+- Project title/channel and notes editing.
+- Archive, restore and confirmed delete.
+- Favorites, tags and tag-aware search.
+- Scheduled dates and a date-ordered content view.
+- Starter templates for YouTube videos, short-form videos, tutorials and livestreams.
+- Editable per-project production checklists.
+
+These features still require successful CI runs and hands-on Android phone, Android tablet and Windows testing before being considered release-ready.

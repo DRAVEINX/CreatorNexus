@@ -77,8 +77,8 @@ public partial class MainPage : ContentPage
                 ? "Add the idea, audience and call to action here."
                 : "Vul hier het idee, de doelgroep en de oproep tot actie in.",
             Checklist = _english
-                ? "Define the idea\nPrepare script or outline\nRecord or create\nEdit and review\nPrepare title and thumbnail\nPublish and share"
-                : "Idee bepalen\nScript of opzet voorbereiden\nOpnemen of maken\nMonteren en controleren\nTitel en thumbnail voorbereiden\nPubliceren en delen"
+                ? "Define the idea; Prepare script or outline; Record or create; Edit and review; Prepare title and thumbnail; Publish and share"
+                : "Idee bepalen; Script of opzet voorbereiden; Opnemen of maken; Monteren en controleren; Titel en thumbnail voorbereiden; Publiceren en delen"
         };
         await _store.AddAsync(project);
         _showArchived = false;
@@ -98,7 +98,7 @@ public partial class MainPage : ContentPage
 
         var checklist = await DisplayPromptAsync(
             _english ? "Production checklist" : "Productiechecklist",
-            _english ? "Enter one task per line. Use [x] to mark a completed task." : "Vul één taak per regel in. Gebruik [x] om een afgeronde taak te markeren.",
+            _english ? "Separate tasks with semicolons. Add [x] before a completed task." : "Scheid taken met puntkomma’s. Zet [x] voor een afgeronde taak.",
             _english ? "Save" : "Opslaan",
             _english ? "Cancel" : "Annuleren",
             maxLength: 3000,
