@@ -30,7 +30,7 @@ jobs:
           if (-not $exe) { throw "Windows executable was not generated." }
           Compress-Archive -Path "artifacts/windows/*" -DestinationPath "artifacts/CreatorNexus-Windows-Portable-TestBuild.zip" -Force
       - name: Upload Windows portable test build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: CreatorNexus-Windows-Portable-TestBuild
           path: artifacts/CreatorNexus-Windows-Portable-TestBuild.zip
