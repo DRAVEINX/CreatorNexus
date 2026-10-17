@@ -52,6 +52,151 @@ public partial class MainPage : ContentPage
             : $"{_visibleProjects.Count} projecten";
     }
 
+    private async void OnEditThumbnailClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+
+        var titleEntry = new Entry
+        {
+            Text = string.IsNullOrWhiteSpace(project.ThumbnailTitle) ? project.Title : project.ThumbnailTitle,
+            Placeholder = _english ? "Thumbnail headline" : "Koptekst voor thumbnail",
+            TextColor = Colors.White,
+            PlaceholderColor = Color.FromArgb("#B9B9C9"),
+            BackgroundColor = Color.FromArgb("#262638"),
+            MaxLength = 90
+        };
+        var subtitleEntry = new Entry
+        {
+            Text = project.ThumbnailSubtitle,
+            Placeholder = _english ? "Optional subtitle" : "Optionele ondertitel",
+            TextColor = Colors.White,
+            PlaceholderColor = Color.FromArgb("#B9B9C9"),
+            BackgroundColor = Color.FromArgb("#262638"),
+            MaxLength = 120
+        };
+        var themes = new[] { "Purple", "Blue", "Orange", "Green" };
+        var picker = new Picker
+        {
+            Title = _english ? "Color theme" : "Kleurthema",
+            ItemsSource = themes,
+            SelectedItem = themes.Contains(project.ThumbnailTheme) ? project.ThumbnailTheme : "Purple",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
+        var previewHeadline = new Label
+        {
+            Text = titleEntry.Text,
+            FontSize = 24,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.White,
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalTextAlignment = TextAlignment.Center,
+            LineBreakMode = LineBreakMode.WordWrap
+        };
+        var previewSubtitle = new Label
+        {
+            Text = subtitleEntry.Text,
+            FontSize = 14,
+            TextColor = Colors.White,
+            HorizontalTextAlignment = TextAlignment.Center,
+            LineBreakMode = LineBreakMode.WordWrap
+        };
+        var preview = new Border
+        {
+            HeightRequest = 190,
+            Stroke = Color.FromArgb("#FFFFFF"),
+            StrokeThickness = 1,
+            Padding = 18,
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
+            Content = new VerticalStackLayout
+            {
+                VerticalOptions = LayoutOptions.Center,
+                HorizontalOptions = LayoutOptions.Fill,
+                Spacing = 10,
+                Children = { previewHeadline, previewSubtitle }
+            }
+        };
+        void RefreshPreview()
+        {
+            previewHeadline.Text = string.IsNullOrWhiteSpace(titleEntry.Text) ? (_english ? "Your headline" : "Jouw koptekst") : titleEntry.Text;
+            previewSubtitle.Text = subtitleEntry.Text ?? string.Empty;
+            var theme = picker.SelectedItem?.ToString() ?? "Purple";
+            preview.BackgroundColor = Color.FromArgb(theme switch
+            {
+                "Blue" => "#155EAA",
+                "Orange" => "#C2410C",
+                "Green" => "#166534",
+                _ => "#6D28D9"
+            });
+        }
+        titleEntry.TextChanged += (_, _) => RefreshPreview();
+        subtitleEntry.TextChanged += (_, _) => RefreshPreview();
+        picker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        RefreshPreview();
+
+        var save = new Button { Text = _english ? "Save design" : "Ontwerp opslaan", BackgroundColor = Color.FromArgb("#7C3AED"), TextColor = Colors.White, CornerRadius = 12 };
+        var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
+        var buttons = new Grid
+        {
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) },
+            ColumnSpacing = 10,
+            Children = { cancel, save }
+        };
+        Grid.SetColumn(cancel, 0);
+        Grid.SetColumn(save, 1);
+        var page = new ContentPage
+        {
+            Title = _english ? "Thumbnail designer" : "Thumbnail-ontwerper",
+            BackgroundColor = Color.FromArgb("#11111B"),
+            Padding = new Thickness(18),
+            Content = new ScrollView
+            {
+                Content = new VerticalStackLayout
+                {
+                    Spacing = 14,
+                    Children =
+                    {
+                        new Label { Text = _english ? "Live thumbnail preview" : "Live thumbnailvoorbeeld", FontSize = 22, FontAttributes = FontAttributes.Bold, TextColor = Colors.White },
+                        preview,
+                        new Label { Text = _english ? "Headline" : "Koptekst", TextColor = Colors.White },
+                        titleEntry,
+                        new Label { Text = _english ? "Subtitle" : "Ondertitel", TextColor = Colors.White },
+                        subtitleEntry,
+                        new Label { Text = _english ? "Color theme" : "Kleurthema", TextColor = Colors.White },
+                        picker,
+                        new Label { Text = _english ? "This saves a design preset and preview, not a PNG/JPG export yet." : "Dit slaat een ontwerpinstelling en voorbeeld op; export naar PNG/JPG is nog niet beschikbaar.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
+                        buttons
+                    }
+                }
+            }
+        };
+
+        var completion = new TaskCompletionSource<bool>();
+        save.Clicked += async (_, _) =>
+        {
+            await Navigation.PopModalAsync();
+            completion.TrySetResult(true);
+        };
+        cancel.Clicked += async (_, _) =>
+        {
+            await Navigation.PopModalAsync();
+            completion.TrySetResult(false);
+        };
+        await Navigation.PushModalAsync(page);
+        if (!await completion.Task) return;
+
+        await _store.UpdateAsync(project with
+        {
+            ThumbnailTitle = titleEntry.Text?.Trim() ?? string.Empty,
+            ThumbnailSubtitle = subtitleEntry.Text?.Trim() ?? string.Empty,
+            ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await LoadProjectsAsync();
+    }
+
     private async void OnEditScriptClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id) return;

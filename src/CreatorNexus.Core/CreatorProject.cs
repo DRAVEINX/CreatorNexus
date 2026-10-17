@@ -12,6 +12,9 @@ public sealed record CreatorProject
     public string Checklist { get; init; } = string.Empty;
     public string Script { get; init; } = string.Empty;
     public string MediaLibrary { get; init; } = string.Empty;
+    public string ThumbnailTitle { get; init; } = string.Empty;
+    public string ThumbnailSubtitle { get; init; } = string.Empty;
+    public string ThumbnailTheme { get; init; } = "Purple";
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
     public bool IsArchived { get; init; }
     public bool IsFavorite { get; init; }
