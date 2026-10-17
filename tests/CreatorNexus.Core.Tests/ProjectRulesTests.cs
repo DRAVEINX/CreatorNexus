@@ -1,4 +1,6 @@
 using CreatorNexus.Core;
+using Xunit;
+
 namespace CreatorNexus.Core.Tests;
 public class ProjectRulesTests
 {
