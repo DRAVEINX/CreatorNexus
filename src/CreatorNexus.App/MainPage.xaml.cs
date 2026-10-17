@@ -74,6 +74,35 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnEditNotesClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var notes = await DisplayPromptAsync(
+            _english ? "Project notes" : "Projectnotities",
+            _english ? "Add an idea, next step or reminder." : "Voeg een idee, volgende stap of herinnering toe.",
+            _english ? "Save" : "Opslaan",
+            _english ? "Cancel" : "Annuleren",
+            _english ? "Write notes here…" : "Schrijf hier je notities…",
+            maxLength: 4000,
+            initialValue: project.Notes);
+
+        if (notes is null)
+            return;
+
+        await _store.UpdateAsync(project with
+        {
+            Notes = notes.Trim(),
+            UpdatedAt = DateTimeOffset.UtcNow
+        });
+        await LoadProjectsAsync();
+    }
+
     private async void OnSearchTextChanged(object sender, TextChangedEventArgs e) =>
         RenderProjects(ProjectRules.Search(await _store.LoadAsync(), e.NewTextValue));
 
