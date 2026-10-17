@@ -267,10 +267,120 @@ public partial class MainPage : ContentPage
         var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
         if (project is null) return;
 
+        var entries = (project.MediaLibrary ?? string.Empty)
+            .Split(new[] { "\\r\\n", "\\n" }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+
+        var actions = _english
+            ? new[] { "Open/share selected file", "Remove selected entry", "Edit references", "Cancel" }
+            : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Verwijzingen bewerken", "Annuleren" };
+        if (entries.Count == 0)
+        {
+            var emptyAction = await DisplayActionSheet(
+                _english ? "Project media library is empty" : "De mediabibliotheek is leeg",
+                _english ? "Cancel" : "Annuleren", null,
+                _english ? "Add a text reference" : "Tekstverwijzing toevoegen");
+            if (emptyAction == (_english ? "Add a text reference" : "Tekstverwijzing toevoegen"))
+                await EditMediaReferencesAsync(project);
+            return;
+        }
+
+        var selectedEntry = await DisplayActionSheet(
+            _english ? $"Media library • {entries.Count} entries" : $"Mediabibliotheek • {entries.Count} items",
+            _english ? "Cancel" : "Annuleren", null,
+            entries.Select((line, index) => $"{index + 1}. {GetMediaDisplayName(line)}").ToArray());
+        var selectedIndex = Array.FindIndex(entries.ToArray(), (line, index) =>
+            selectedEntry == $"{index + 1}. {GetMediaDisplayName(line)}");
+        if (selectedIndex < 0) return;
+
+        var selectedLine = entries[selectedIndex];
+        var action = await DisplayActionSheet(
+            GetMediaDisplayName(selectedLine),
+            _english ? "Cancel" : "Annuleren", null, actions.Take(3).ToArray());
+        if (action == actions[0])
+        {
+            var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
+            var path = separator >= 0 ? selectedLine[(separator + 3)..].Trim() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            {
+                try
+                {
+                    await Share.Default.RequestAsync(new ShareFileRequest
+                    {
+                        Title = GetMediaDisplayName(selectedLine),
+                        File = new ShareFile(path)
+                    });
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "Cannot open file" : "Bestand openen mislukt",
+                        ex.Message, _english ? "OK" : "Oké");
+                }
+            }
+            else
+            {
+                await DisplayAlertAsync(
+                    _english ? "No local file" : "Geen lokaal bestand",
+                    _english ? "This entry is only a reference or the file is missing." : "Dit item is alleen een verwijzing of het bestand ontbreekt.",
+                    _english ? "OK" : "Oké");
+            }
+        }
+        else if (action == actions[1])
+        {
+            var confirmed = await DisplayAlertAsync(
+                _english ? "Remove media entry?" : "Media-item verwijderen?",
+                _english ? $"Remove “{GetMediaDisplayName(selectedLine)}” from this project? A copied app file will also be deleted." : $"“{GetMediaDisplayName(selectedLine)}” uit dit project verwijderen? Een gekopieerd appbestand wordt ook verwijderd.",
+                _english ? "Remove" : "Verwijderen",
+                _english ? "Cancel" : "Annuleren");
+            if (!confirmed) return;
+
+            var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
+            var path = separator >= 0 ? selectedLine[(separator + 3)..].Trim() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                try
+                {
+                    var mediaRoot = Path.GetFullPath(Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusMedia")) + Path.DirectorySeparatorChar;
+                    var fullPath = Path.GetFullPath(path);
+                    if (fullPath.StartsWith(mediaRoot, StringComparison.OrdinalIgnoreCase) && File.Exists(fullPath))
+                        File.Delete(fullPath);
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "File could not be deleted" : "Bestand kon niet worden verwijderd",
+                        ex.Message, _english ? "OK" : "Oké");
+                    return;
+                }
+            }
+
+            entries.RemoveAt(selectedIndex);
+            await _store.UpdateAsync(project with
+            {
+                MediaLibrary = string.Join(Environment.NewLine, entries),
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+            await LoadProjectsAsync();
+        }
+        else if (action == actions[2])
+        {
+            await EditMediaReferencesAsync(project);
+        }
+    }
+
+    private static string GetMediaDisplayName(string entry)
+    {
+        var separator = entry.IndexOf(" | ", StringComparison.Ordinal);
+        return separator >= 0 ? entry[..separator].Trim() : entry.Trim();
+    }
+
+    private async Task EditMediaReferencesAsync(CreatorProject project)
+    {
         var media = await EditLongTextAsync(
-            _english ? "Project media library" : "Mediabibliotheek van project",
+            _english ? "Project media references" : "Media-verwijzingen van project",
             project.MediaLibrary,
-            _english ? "Add one filename, file location or media URL per line. This stores references, not uploaded files." : "Voeg per regel een bestandsnaam, locatie of media-URL toe. Dit bewaart verwijzingen, geen geüploade bestanden.");
+            _english ? "Add one filename, file location or media URL per line. Imported files are stored in app-private storage." : "Voeg per regel een bestandsnaam, locatie of media-URL toe. Geïmporteerde bestanden staan in de privéopslag van de app.");
         if (media is null) return;
         await _store.UpdateAsync(project with { MediaLibrary = media.Trim(), UpdatedAt = DateTimeOffset.UtcNow });
         await LoadProjectsAsync();
