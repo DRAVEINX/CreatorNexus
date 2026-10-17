@@ -104,6 +104,13 @@ public partial class MainPage : ContentPage
             HorizontalTextAlignment = TextAlignment.Center,
             LineBreakMode = LineBreakMode.WordWrap
         };
+        var previewImage = new Image
+        {
+            Aspect = Aspect.AspectFill,
+            IsVisible = !string.IsNullOrWhiteSpace(project.ThumbnailImagePath) && File.Exists(project.ThumbnailImagePath)
+        };
+        if (previewImage.IsVisible)
+            previewImage.Source = ImageSource.FromFile(project.ThumbnailImagePath!);
         var preview = new Border
         {
             HeightRequest = 190,
@@ -111,12 +118,19 @@ public partial class MainPage : ContentPage
             StrokeThickness = 1,
             Padding = 18,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
-            Content = new VerticalStackLayout
+            Content = new Grid
             {
-                VerticalOptions = LayoutOptions.Center,
-                HorizontalOptions = LayoutOptions.Fill,
-                Spacing = 10,
-                Children = { previewHeadline, previewSubtitle }
+                Children =
+                {
+                    previewImage,
+                    new VerticalStackLayout
+                    {
+                        VerticalOptions = LayoutOptions.Center,
+                        HorizontalOptions = LayoutOptions.Fill,
+                        Spacing = 10,
+                        Children = { previewHeadline, previewSubtitle }
+                    }
+                }
             }
         };
         void RefreshPreview()
@@ -137,6 +151,42 @@ public partial class MainPage : ContentPage
         picker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
+        string? selectedImagePath = project.ThumbnailImagePath;
+        var chooseImageButton = new Button
+        {
+            Text = _english ? "Choose thumbnail image" : "Thumbnail-afbeelding kiezen",
+            BackgroundColor = Color.FromArgb("#262638"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        chooseImageButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var file = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = _english ? "Choose an image" : "Kies een afbeelding",
+                    FileTypes = FilePickerFileType.Images
+                });
+                if (file is null) return;
+                var folder = Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusMedia");
+                Directory.CreateDirectory(folder);
+                var safeName = Path.GetFileName(file.FileName);
+                if (string.IsNullOrWhiteSpace(safeName)) safeName = "thumbnail-image";
+                var destination = Path.Combine(folder, $"{Guid.NewGuid():N}_{safeName}");
+                await using (var input = await file.OpenReadAsync())
+                await using (var output = File.Create(destination))
+                    await input.CopyToAsync(output);
+                selectedImagePath = destination;
+                previewImage.Source = ImageSource.FromFile(destination);
+                previewImage.IsVisible = true;
+                preview.BackgroundColor = Color.FromArgb("#262638");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Image could not be added" : "Afbeelding toevoegen mislukt", ex.Message, _english ? "OK" : "Oké");
+            }
+        };
         var exportButton = new Button
         {
             Text = _english ? "Export PNG and share" : "Exporteer PNG en delen",
@@ -174,7 +224,8 @@ public partial class MainPage : ContentPage
                         subtitleEntry,
                         new Label { Text = _english ? "Color theme" : "Kleurthema", TextColor = Colors.White },
                         picker,
-                        new Label { Text = _english ? "This saves a design preset and preview, not a PNG/JPG export yet." : "Dit slaat een ontwerpinstelling en voorbeeld op; export naar PNG/JPG is nog niet beschikbaar.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
+                        chooseImageButton,
+                        new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
                         buttons
                     }
                 }
@@ -191,7 +242,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath);
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -221,12 +272,13 @@ public partial class MainPage : ContentPage
             ThumbnailTitle = titleEntry.Text?.Trim() ?? string.Empty,
             ThumbnailSubtitle = subtitleEntry.Text?.Trim() ?? string.Empty,
             ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
+            ThumbnailImagePath = selectedImagePath,
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath)
     {
         var background = theme switch
         {
@@ -244,7 +296,23 @@ public partial class MainPage : ContentPage
         using (var subtitlePaint = new SKPaint { Color = new SKColor(245, 245, 255), TextSize = 34, IsAntialias = true, Typeface = SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
         using (var accentPaint = new SKPaint { Color = SKColors.White, IsAntialias = true })
         {
-            canvas.Clear(background);
+            var mediaFolder = Path.GetFullPath(Path.Combine(FileSystem.AppDataDirectory, "CreatorNexusMedia")) + Path.DirectorySeparatorChar;
+            var safeImagePath = string.IsNullOrWhiteSpace(imagePath) ? null : Path.GetFullPath(imagePath);
+            if (safeImagePath is not null && safeImagePath.StartsWith(mediaFolder, StringComparison.OrdinalIgnoreCase) && File.Exists(safeImagePath))
+            {
+                using var sourceBitmap = SKBitmap.Decode(safeImagePath);
+                if (sourceBitmap is not null && sourceBitmap.Width > 0 && sourceBitmap.Height > 0)
+                {
+                    var sourceRatio = (float)sourceBitmap.Width / sourceBitmap.Height;
+                    var targetRatio = (float)width / height;
+                    SKRect sourceRect = sourceRatio > targetRatio
+                        ? new SKRect((sourceBitmap.Width - sourceBitmap.Height * targetRatio) / 2f, 0, (sourceBitmap.Width + sourceBitmap.Height * targetRatio) / 2f, sourceBitmap.Height)
+                        : new SKRect(0, (sourceBitmap.Height - sourceBitmap.Width / targetRatio) / 2f, sourceBitmap.Width, (sourceBitmap.Height + sourceBitmap.Width / targetRatio) / 2f);
+                    canvas.DrawBitmap(sourceBitmap, sourceRect, new SKRect(0, 0, width, height));
+                }
+                else canvas.Clear(background);
+            }
+            else canvas.Clear(background);
             canvas.DrawRoundRect(new SKRoundRect(new SKRect(36, 36, width - 36, height - 36), 34, 34), panelPaint);
             canvas.DrawRoundRect(new SKRoundRect(new SKRect(70, height - 96, width - 70, height - 82), 7, 7), accentPaint);
             var titleLines = WrapThumbnailText(headline, titlePaint, width - 150).Take(3).ToArray();
