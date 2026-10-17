@@ -35,3 +35,6 @@ The roadmap items above are planned work, not features already present in the Ph
 - Editable per-project production checklists.
 
 These features still require successful CI runs and hands-on Android phone, Android tablet and Windows testing before being considered release-ready.
+
+- Multiline script studio for hooks, scenes, dialogue and calls to action.
+- Per-project media reference list for filenames, locations and URLs (references only; files are not uploaded or copied).

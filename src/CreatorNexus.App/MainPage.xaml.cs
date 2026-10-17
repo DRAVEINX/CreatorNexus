@@ -52,6 +52,106 @@ public partial class MainPage : ContentPage
             : $"{_visibleProjects.Count} projecten";
     }
 
+    private async void OnEditScriptClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+
+        var script = await EditLongTextAsync(
+            _english ? "Script studio" : "Scriptstudio",
+            project.Script,
+            _english ? "Write your hook, scenes, dialogue and call to action…" : "Schrijf je opening, scènes, tekst en oproep tot actie…");
+        if (script is null) return;
+        await _store.UpdateAsync(project with { Script = script.Trim(), UpdatedAt = DateTimeOffset.UtcNow });
+        await LoadProjectsAsync();
+    }
+
+    private async void OnEditMediaLibraryClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id) return;
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null) return;
+
+        var media = await EditLongTextAsync(
+            _english ? "Project media library" : "Mediabibliotheek van project",
+            project.MediaLibrary,
+            _english ? "Add one filename, file location or media URL per line. This stores references, not uploaded files." : "Voeg per regel een bestandsnaam, locatie of media-URL toe. Dit bewaart verwijzingen, geen geüploade bestanden.");
+        if (media is null) return;
+        await _store.UpdateAsync(project with { MediaLibrary = media.Trim(), UpdatedAt = DateTimeOffset.UtcNow });
+        await LoadProjectsAsync();
+    }
+
+    private async Task<string?> EditLongTextAsync(string title, string initialValue, string placeholder)
+    {
+        var editor = new Editor
+        {
+            Text = initialValue,
+            Placeholder = placeholder,
+            AutoSize = EditorAutoSizeOption.TextChanges,
+            MinimumHeightRequest = 240,
+            TextColor = Colors.White,
+            PlaceholderColor = Color.FromArgb("#9CA3AF"),
+            BackgroundColor = Color.FromArgb("#262638"),
+            VerticalOptions = LayoutOptions.Fill
+        };
+        var completion = new TaskCompletionSource<string?>();
+        var saveButton = new Button
+        {
+            Text = _english ? "Save" : "Opslaan",
+            BackgroundColor = Color.FromArgb("#7C3AED"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var cancelButton = new Button
+        {
+            Text = _english ? "Cancel" : "Annuleren",
+            BackgroundColor = Color.FromArgb("#262638"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var page = new ContentPage
+        {
+            Title = title,
+            BackgroundColor = Color.FromArgb("#11111B"),
+            Padding = new Thickness(18),
+            Content = new Grid
+            {
+                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto) },
+                RowSpacing = 14,
+                Children =
+                {
+                    new Label { Text = title, FontSize = 22, FontAttributes = FontAttributes.Bold, TextColor = Colors.White },
+                    editor,
+                    new Grid
+                    {
+                        ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) },
+                        ColumnSpacing = 10,
+                        Children = { cancelButton, saveButton }
+                    }
+                }
+            }
+        };
+        var root = (Grid)page.Content;
+        Grid.SetRow(editor, 1);
+        Grid.SetRow((View)root.Children[2], 2);
+        Grid.SetColumn(cancelButton, 0);
+        Grid.SetColumn(saveButton, 1);
+
+        saveButton.Clicked += async (_, _) =>
+        {
+            await Navigation.PopModalAsync();
+            completion.TrySetResult(editor.Text ?? string.Empty);
+        };
+        cancelButton.Clicked += async (_, _) =>
+        {
+            await Navigation.PopModalAsync();
+            completion.TrySetResult(null);
+        };
+        await Navigation.PushModalAsync(page);
+        return await completion.Task;
+    }
+
     private async void OnCreateFromTemplateClicked(object sender, EventArgs e)
     {
         var choices = _english

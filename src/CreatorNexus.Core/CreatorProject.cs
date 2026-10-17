@@ -10,6 +10,8 @@ public sealed record CreatorProject
     public string Notes { get; init; } = string.Empty;
     public string Tags { get; init; } = string.Empty;
     public string Checklist { get; init; } = string.Empty;
+    public string Script { get; init; } = string.Empty;
+    public string MediaLibrary { get; init; } = string.Empty;
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
     public bool IsArchived { get; init; }
     public bool IsFavorite { get; init; }

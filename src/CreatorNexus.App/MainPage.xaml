@@ -49,7 +49,7 @@
                     <CollectionView.ItemTemplate>
                         <DataTemplate x:DataType="core:CreatorProject">
                             <Border BackgroundColor="{StaticResource PanelBackground}" Stroke="#303044" Padding="16" Margin="0,0,0,10" StrokeShape="RoundRectangle 16">
-                                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                                <Grid ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
                                     <Label Grid.Row="0" Grid.Column="0" Text="{Binding Title}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" LineBreakMode="TailTruncation" />
                                     <Label Grid.Row="1" Grid.Column="0" Text="{Binding Channel}" FontSize="12" TextColor="{StaticResource TextMuted}" />
                                     <Label Grid.Row="2" Grid.Column="0" Text="{Binding Status}" FontSize="12" TextColor="#C4B5FD" />
@@ -64,6 +64,8 @@
                                     <Button Grid.Column="2" Grid.Row="1" Text="★" CommandParameter="{Binding Id}" Clicked="OnToggleFavoriteClicked" BackgroundColor="#3B3154" TextColor="#FDE68A" CornerRadius="12" VerticalOptions="Center" />
                                     <Button Grid.Column="1" Grid.Row="4" Text="📅" CommandParameter="{Binding Id}" Clicked="OnScheduleProjectClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" VerticalOptions="Center" />
                                     <Button Grid.Column="0" Grid.Row="6" Text="Archiveren / herstellen" CommandParameter="{Binding Id}" Clicked="OnToggleArchiveClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" HorizontalOptions="Start" />
+                                    <Button Grid.Column="0" Grid.Row="7" Text="✍ Script" CommandParameter="{Binding Id}" Clicked="OnEditScriptClicked" BackgroundColor="#30264A" TextColor="White" CornerRadius="10" HorizontalOptions="Start" />
+                                    <Button Grid.Column="1" Grid.Row="7" Text="▤ Media" CommandParameter="{Binding Id}" Clicked="OnEditMediaLibraryClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="10" />
                                     <Button Grid.Column="2" Grid.Row="6" Text="🗑" CommandParameter="{Binding Id}" Clicked="OnDeleteProjectClicked" BackgroundColor="#42252D" TextColor="White" CornerRadius="10" />
                                 </Grid>
                             </Border>
