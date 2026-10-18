@@ -819,9 +819,11 @@ public partial class MainPage : ContentPage
                     _english ? "Show all" : "Alles tonen",
                     maxLength: 50);
                 if (searchText is null) return;
-                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
-                    ? styles.ToList()
-                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                var matchingStyles = (string.IsNullOrWhiteSpace(searchText)
+                    ? styles
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (matchingStyles.Count == 0)
                 {
                     await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
@@ -875,9 +877,11 @@ public partial class MainPage : ContentPage
                     _english ? "Show all" : "Alles tonen",
                     maxLength: 50);
                 if (searchText is null) return;
-                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
-                    ? styles.ToList()
-                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                var matchingStyles = (string.IsNullOrWhiteSpace(searchText)
+                    ? styles
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (matchingStyles.Count == 0)
                 {
                     await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
@@ -931,9 +935,11 @@ public partial class MainPage : ContentPage
                     _english ? "Show all" : "Alles tonen",
                     maxLength: 50);
                 if (searchText is null) return;
-                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
-                    ? styles.ToList()
-                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                var matchingStyles = (string.IsNullOrWhiteSpace(searchText)
+                    ? styles
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (matchingStyles.Count == 0)
                 {
                     await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
@@ -1127,9 +1133,11 @@ public partial class MainPage : ContentPage
                     maxLength: 50);
                 if (searchText is null) return;
 
-                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
+                var matchingStyles = (string.IsNullOrWhiteSpace(searchText)
                     ? styles
-                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)))
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
                 if (matchingStyles.Count == 0)
                 {
                     await DisplayAlertAsync(
