@@ -97,6 +97,10 @@ public sealed class ProjectStore
             try
             {
                 await using var stream = File.OpenRead(fullPath);
+                var sizeError = ProjectBackupRules.ValidateBackupSize(stream.Length);
+                if (sizeError is not null)
+                    throw new InvalidDataException($"{sizeError} Existing projects were not changed.");
+
                 projects = await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options)
                     ?? throw new InvalidDataException("The backup does not contain a project collection.");
             }

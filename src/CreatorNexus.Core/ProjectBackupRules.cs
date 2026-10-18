@@ -4,6 +4,16 @@ namespace CreatorNexus.Core;
 public static class ProjectBackupRules
 {
     public const int MaximumProjects = 10_000;
+    public const long MaximumBackupBytes = 50L * 1024 * 1024;
+
+    /// <summary>Returns an error message when the backup file is too large.</summary>
+    public static string? ValidateBackupSize(long sizeInBytes)
+    {
+        if (sizeInBytes > MaximumBackupBytes)
+            return $"The backup file exceeds the {MaximumBackupBytes / (1024 * 1024)} MB size limit.";
+
+        return null;
+    }
 
     /// <summary>
     /// Returns an error message when a backup project collection is invalid; otherwise returns null.

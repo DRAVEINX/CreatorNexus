@@ -20,12 +20,10 @@
 ## Release gate
 Do not mark a release ready until automated tests and all applicable platform checks pass in CI and at least one real device per form factor is tested. A successful compile alone is not a substitute for manual acceptance checks.
 
-
 ## Extended search coverage
 - Search project title, channel, notes and tags without case sensitivity.
 - Search production checklist, script, media references, and thumbnail headline/subtitle.
 - Confirm empty search still returns all projects and searches do not modify saved data.
-
 
 ## Storage integrity and recovery checks
 - Export a JSON backup from the app using the platform share sheet.
@@ -37,7 +35,7 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Saving writes a complete temporary JSON snapshot before replacing the primary project file.
 - When a primary file already exists, preserve its previous contents as a `.bak` file before replacement.
 - If saved JSON is malformed, surface a clear data-integrity error rather than treating the library as empty.
-- Confirm a failed save leaves the existing primary file intact and temporary files are cleaned up.
+- Confirm a failed save leaves the existing primary file intact and temporary files are cleaned up. 
 - Verify backup retention and recovery behavior on Android and Windows before release.
 
 - Export the saved project collection to a portable JSON backup file.
@@ -45,3 +43,4 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Verify export and restore manually on Android and Windows, including a backup made on one platform and restored on another.
 
 - Automated backup-rule tests reject collections over 10,000 projects and explicit null text fields before restore can replace saved data.
+- Backup restore rejects files larger than 50 MB before parsing; automated tests cover the exact limit and the first byte over it.
