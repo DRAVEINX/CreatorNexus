@@ -55,6 +55,16 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Restart the app after import/replacement and confirm the saved library persists.
 
 
+## Saved thumbnail style search
+
+- [ ] Search styles to load using a partial name; confirm only matching styles are offered.
+- [ ] Search with different letter casing; confirm matching is case-insensitive.
+- [ ] Leave the search field blank or choose “Show all” / “Alles tonen”; confirm all saved styles are offered.
+- [ ] Cancel the search prompt; confirm the action exits without changing anything.
+- [ ] Search for a name that does not exist; confirm a clear no-matches message appears and no style is changed or deleted.
+- [ ] Repeat partial search for load, delete, duplicate and export; confirm each action only offers matching styles.
+- [ ] Confirm Dutch and English labels are correct on Android phone, Android tablet and Windows.
+
 ## Record each test
 
 For every checkbox, record: date, app commit SHA, artifact/run URL, device or Windows version, result (pass/fail/not tested), and a short note for failures. A CI pass should never automatically mark manual acceptance as passed.
