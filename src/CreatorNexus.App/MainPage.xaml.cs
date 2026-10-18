@@ -887,8 +887,34 @@ public partial class MainPage : ContentPage
             return;
         }
 
+        var availableCount = 0;
+        var missingCount = 0;
+        long totalBytes = 0;
+        foreach (var entry in entries)
+        {
+            var separator = entry.IndexOf(" | ", StringComparison.Ordinal);
+            var path = separator >= 0 ? entry[(separator + 3)..].Trim() : string.Empty;
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            {
+                availableCount++;
+                try { totalBytes += new FileInfo(path).Length; }
+                catch { /* Keep the overview usable if file metadata cannot be read. */ }
+            }
+            else
+            {
+                missingCount++;
+            }
+        }
+
+        var totalSize = totalBytes < 1024L * 1024L
+            ? $"{Math.Max(1, (totalBytes + 1023) / 1024)} KB"
+            : $"{totalBytes / (1024d * 1024d):0.0} MB";
+        var libraryTitle = _english
+            ? $"Media library • {entries.Count} items • {availableCount} local • {missingCount} missing • {totalSize}"
+            : $"Mediabibliotheek • {entries.Count} items • {availableCount} lokaal • {missingCount} ontbreekt • {totalSize}";
+
         var selectedEntry = await DisplayActionSheetAsync(
-            _english ? $"Media library • {entries.Count} entries" : $"Mediabibliotheek • {entries.Count} items",
+            libraryTitle,
             _english ? "Cancel" : "Annuleren", null,
             entries.Select((line, index) => $"{index + 1}. {GetMediaSelectionLabel(line)}").ToArray());
         var selectedIndex = entries
