@@ -57,3 +57,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Thumbnail-editor enhancement: selectable Arial, Georgia or Courier New font family, persisted per project and used in the live preview and PNG/JPG exports.
 
 - Thumbnail-editor enhancement: selectable text-panel opacity (Subtle, Medium, Strong), persisted per project and applied to preview plus PNG/JPG exports.
+
+- Thumbnail-editor enhancement: configurable text-panel padding (Compact, Normal, Spacious), saved per project and reflected in the live preview and PNG/JPG exports.
