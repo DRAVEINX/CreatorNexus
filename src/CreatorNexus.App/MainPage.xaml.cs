@@ -1268,7 +1268,9 @@ public partial class MainPage : ContentPage
 
         var checklist = await DisplayPromptAsync(
             _english ? "Production checklist" : "Productiechecklist",
-            _english ? "Separate tasks with semicolons. Add [x] before a completed task." : "Scheid taken met puntkomma’s. Zet [x] voor een afgeronde taak.",
+            _english
+                ? "Separate tasks with semicolons. Prefix a completed task with [x] and an open task with [ ]. Example: [x] Script ready; [ ] Record video."
+                : "Scheid taken met puntkomma’s. Zet [x] vóór een afgeronde taak en [ ] vóór een open taak. Voorbeeld: [x] Script klaar; [ ] Video opnemen.",
             _english ? "Save" : "Opslaan",
             _english ? "Cancel" : "Annuleren",
             maxLength: 3000,
