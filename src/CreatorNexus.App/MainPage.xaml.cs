@@ -821,9 +821,9 @@ public partial class MainPage : ContentPage
         var selectedEntry = await DisplayActionSheetAsync(
             _english ? $"Media library • {entries.Count} entries" : $"Mediabibliotheek • {entries.Count} items",
             _english ? "Cancel" : "Annuleren", null,
-            entries.Select((line, index) => $"{index + 1}. {GetMediaDisplayName(line)}").ToArray());
+            entries.Select((line, index) => $"{index + 1}. {GetMediaSelectionLabel(line)}").ToArray());
         var selectedIndex = entries
-            .Select((line, index) => new { line, index, label = $"{index + 1}. {GetMediaDisplayName(line)}" })
+            .Select((line, index) => new { line, index, label = $"{index + 1}. {GetMediaSelectionLabel(line)}" })
             .Where(item => item.label == selectedEntry)
             .Select(item => item.index)
             .DefaultIfEmpty(-1)
@@ -947,6 +947,20 @@ public partial class MainPage : ContentPage
         Grid.SetRow(closeButton, 1);
         closeButton.Clicked += async (_, _) => await Navigation.PopModalAsync();
         await Navigation.PushModalAsync(previewPage);
+    }
+
+    private string GetMediaSelectionLabel(string entry)
+    {
+        var displayName = GetMediaDisplayName(entry);
+        var separator = entry.IndexOf(" | ", StringComparison.Ordinal);
+        if (separator < 0)
+            return displayName;
+
+        var path = entry[(separator + 3)..].Trim();
+        if (string.IsNullOrWhiteSpace(path) || File.Exists(path))
+            return displayName;
+
+        return $"{displayName} ({(_english ? "file missing" : "bestand ontbreekt")})";
     }
 
     private static string GetMediaDisplayName(string entry)
