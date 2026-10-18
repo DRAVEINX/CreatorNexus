@@ -584,6 +584,13 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var deleteStyleButton = new Button
+        {
+            Text = _english ? "Delete saved style" : "Opgeslagen stijl verwijderen",
+            BackgroundColor = Color.FromArgb("#7F1D1D"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -652,6 +659,7 @@ public partial class MainPage : ContentPage
                         reuseDesignButton,
                         saveStyleButton,
                         loadStyleButton,
+                        deleteStyleButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -747,6 +755,46 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 await DisplayAlertAsync(_english ? "Could not save style" : "Stijl opslaan mislukt", ex.Message, "OK");
+            }
+        };
+        deleteStyleButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var styles = await styleStore.LoadAsync();
+                if (styles.Count == 0)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "No saved styles" : "Geen opgeslagen stijlen",
+                        _english ? "There are no saved styles to delete." : "Er zijn geen opgeslagen stijlen om te verwijderen.",
+                        "OK");
+                    return;
+                }
+
+                var selectedName = await DisplayActionSheetAsync(
+                    _english ? "Choose a style to delete" : "Kies een stijl om te verwijderen",
+                    _english ? "Cancel" : "Annuleren",
+                    null,
+                    styles.Select(x => x.Name).ToArray());
+                if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren"))
+                    return;
+
+                var confirmed = await DisplayAlertAsync(
+                    _english ? "Delete saved style?" : "Opgeslagen stijl verwijderen?",
+                    _english ? $"Delete “{selectedName}”? This cannot be undone." : $"“{selectedName}” verwijderen? Dit kan niet ongedaan worden gemaakt.",
+                    _english ? "Delete" : "Verwijderen",
+                    _english ? "Keep" : "Behouden");
+                if (!confirmed) return;
+
+                var deleted = await styleStore.DeleteAsync(selectedName);
+                await DisplayAlertAsync(
+                    _english ? (deleted ? "Style deleted" : "Style not found") : (deleted ? "Stijl verwijderd" : "Stijl niet gevonden"),
+                    _english ? (deleted ? $"“{selectedName}” was removed from your style library." : "The style could not be found.") : (deleted ? $"“{selectedName}” is uit je stijlenbibliotheek verwijderd." : "De stijl kon niet worden gevonden."),
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Could not delete style" : "Stijl verwijderen mislukt", ex.Message, "OK");
             }
         };
         loadStyleButton.Clicked += async (_, _) =>
