@@ -16,8 +16,9 @@ public sealed class ThumbnailStyleStore
         {
             if (!File.Exists(_filePath)) return Array.Empty<ThumbnailStylePreset>();
             await using var stream = File.OpenRead(_filePath);
-            return await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(stream, Options)
+            var styles = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(stream, Options)
                 ?? throw new InvalidDataException("The saved thumbnail style library is empty or invalid.");
+            return styles.OrderBy(style => style.Name, StringComparer.OrdinalIgnoreCase).ToList();
         }
         finally { _gate.Release(); }
     }
