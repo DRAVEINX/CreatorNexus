@@ -319,8 +319,8 @@ public partial class MainPage : ContentPage
             var previewOutline = outlineColor switch { "White" => Colors.White, "Black" => Colors.Black, _ => Colors.Transparent };
             var outlineThickness = outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium";
             var shadowRadius = outlineThickness switch { "Thin" => 1f, "Thick" => 5f, _ => 3f };
-            previewHeadline.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = shadowRadius, Opacity = 1 };
-            previewSubtitle.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = shadowRadius, Opacity = 1 };
+            previewHeadline.Shadow = new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = outlineColor == "None" ? 0 : shadowRadius, Opacity = outlineColor == "None" ? 0 : 1 };
+            previewSubtitle.Shadow = new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = outlineColor == "None" ? 0 : shadowRadius, Opacity = outlineColor == "None" ? 0 : 1 };
             var layout = layoutPicker.SelectedItem?.ToString() ?? "Center";
             var placement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center";
             var previewStack = (VerticalStackLayout)previewTextPanel.Content;
