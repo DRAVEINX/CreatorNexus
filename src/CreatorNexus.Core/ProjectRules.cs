@@ -15,10 +15,18 @@ public static class ProjectRules
         var term = query?.Trim();
         var source = projects;
         if (!string.IsNullOrEmpty(term))
-            source = source.Where(p => p.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || p.Channel.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || p.Notes.Contains(term, StringComparison.OrdinalIgnoreCase)
-                || p.Tags.Contains(term, StringComparison.OrdinalIgnoreCase));
+            source = source.Where(p => Contains(p.Title, term)
+                || Contains(p.Channel, term)
+                || Contains(p.Notes, term)
+                || Contains(p.Tags, term)
+                || Contains(p.Checklist, term)
+                || Contains(p.Script, term)
+                || Contains(p.MediaLibrary, term)
+                || Contains(p.ThumbnailTitle, term)
+                || Contains(p.ThumbnailSubtitle, term));
         return source.OrderByDescending(p => p.UpdatedAt).ToArray();
     }
+
+    private static bool Contains(string? value, string term) =>
+        value?.Contains(term, StringComparison.OrdinalIgnoreCase) == true;
 }

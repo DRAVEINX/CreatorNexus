@@ -19,3 +19,9 @@
 
 ## Release gate
 Do not mark a release ready until automated tests and all applicable platform checks pass in CI and at least one real device per form factor is tested. A successful compile alone is not a substitute for manual acceptance checks.
+
+
+## Extended search coverage
+- Search project title, channel, notes and tags without case sensitivity.
+- Search production checklist, script, media references, and thumbnail headline/subtitle.
+- Confirm empty search still returns all projects and searches do not modify saved data.
