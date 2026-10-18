@@ -17,6 +17,7 @@ CreatorNexus is a standalone .NET MAUI app with a dark interface and Dutch/Engli
 - Export projects to a portable JSON backup and restore a selected backup.
 - Validate backup version, checksum, size and project data before replacing saved projects.
 - Preserve a previous local project snapshot as a `.bak` file when saving.
+- Recover from the local `.bak` snapshot through a guided, confirmation-based action that validates the backup and preserves the recovery source.
 - Separate Android and Windows CI workflows with automated domain and backup-validation tests.
 
 ## Requirements
@@ -55,7 +56,7 @@ Each successful Android workflow publishes APK/AAB build artifacts. Each success
 - Older bare JSON-array backups remain supported.
 - Invalid or oversized restore files are rejected before existing projects are replaced.
 - If the saved project file is malformed or fails validation, CreatorNexus reports a data-integrity error and preserves the original file rather than silently opening an empty library.
-- A previous saved snapshot is retained as `creator-projects.json.bak` when a new snapshot is saved. A guided restore-from-`.bak` screen is not currently implemented; recovery may require manually preserving and restoring app data.
+- A previous saved snapshot is retained as `creator-projects.json.bak` when a new snapshot is saved. The guided local recovery action validates the `.bak` snapshot before replacing the primary file and leaves the `.bak` recovery source intact. The action has CI build coverage, but still needs hands-on testing on real devices.
 
 ## Separation
 
@@ -63,4 +64,4 @@ CreatorNexus is a standalone solution with app ID `com.draveinx.creatornexus`, i
 
 ## Not yet included / release work remaining
 
-CreatorNexus is still under active development. Features not yet provided as complete production services include user accounts and cloud synchronization across devices, analytics, platform integrations, AI-assisted workflows, release signing/distribution setup, and a guided recovery screen for the retained `.bak` snapshot. Accessibility, responsive layout, backup transfer, and installation still need hands-on acceptance testing on actual Android phone/tablet hardware and Windows.
+CreatorNexus is still under active development. Features not yet provided as complete production services include user accounts and cloud synchronization across devices, analytics, platform integrations, AI-assisted workflows, release signing/distribution setup, and production release signing/distribution setup. Accessibility, responsive layout, backup transfer, and installation still need hands-on acceptance testing on actual Android phone/tablet hardware and Windows.
