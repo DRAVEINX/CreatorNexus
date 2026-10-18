@@ -890,8 +890,8 @@ public partial class MainPage : ContentPage
             .ToList();
 
         var actions = _english
-            ? new[] { "Open/share selected file", "Remove selected entry", "Edit references", "File information", "Cancel" }
-            : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Verwijzingen bewerken", "Bestandsinformatie", "Annuleren" };
+            ? new[] { "Open/share selected file", "Remove selected entry", "Rename display name", "Edit references", "File information", "Cancel" }
+            : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Weergavenaam wijzigen", "Verwijzingen bewerken", "Bestandsinformatie", "Annuleren" };
         if (entries.Count == 0)
         {
             var emptyAction = await DisplayActionSheetAsync(
@@ -944,7 +944,7 @@ public partial class MainPage : ContentPage
         var selectedLine = entries[selectedIndex];
         var action = await DisplayActionSheetAsync(
             GetMediaDisplayName(selectedLine),
-            _english ? "Cancel" : "Annuleren", null, actions.Take(4).ToArray());
+            _english ? "Cancel" : "Annuleren", null, actions.Take(5).ToArray());
         if (action == actions[0])
         {
             var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
@@ -1022,9 +1022,32 @@ public partial class MainPage : ContentPage
         }
         else if (action == actions[2])
         {
-            await EditMediaReferencesAsync(project);
+            var currentName = GetMediaDisplayName(selectedLine);
+            var newName = await DisplayPromptAsync(
+                _english ? "Rename media display name" : "Weergavenaam van media wijzigen",
+                _english ? "This changes the label shown in CreatorNexus, not the original file." : "Dit wijzigt alleen de naam die CreatorNexus toont, niet het originele bestand.",
+                _english ? "Save" : "Opslaan",
+                _english ? "Cancel" : "Annuleren",
+                initialValue: currentName,
+                maxLength: 180);
+            if (string.IsNullOrWhiteSpace(newName)) return;
+
+            var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
+            entries[selectedIndex] = separator >= 0
+                ? newName.Trim() + " | " + selectedLine[(separator + 3)..].Trim()
+                : newName.Trim();
+            await _store.UpdateAsync(project with
+            {
+                MediaLibrary = string.Join(Environment.NewLine, entries),
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+            await LoadProjectsAsync();
         }
         else if (action == actions[3])
+        {
+            await EditMediaReferencesAsync(project);
+        }
+        else if (action == actions[4])
         {
             var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
             var path = separator >= 0 ? selectedLine[(separator + 3)..].Trim() : string.Empty;
