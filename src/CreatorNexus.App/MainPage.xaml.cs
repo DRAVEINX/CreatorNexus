@@ -905,11 +905,22 @@ public partial class MainPage : ContentPage
                     initialValue: $"{selected.Name} {( _english ? "copy" : "kopie")}",
                     maxLength: 50);
                 if (string.IsNullOrWhiteSpace(newName)) return;
+                var trimmedName = newName.Trim();
+                if (styles.Any(x => string.Equals(x.Name, trimmedName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    await DisplayAlertAsync(
+                        _english ? "Name already in use" : "Naam bestaat al",
+                        _english
+                            ? "A saved style already uses that name. Choose a different name so the existing style is not overwritten."
+                            : "Er bestaat al een opgeslagen stijl met deze naam. Kies een andere naam zodat de bestaande stijl niet wordt overschreven.",
+                        "OK");
+                    return;
+                }
 
-                await styleStore.SaveAsync(selected with { Name = newName.Trim() });
+                await styleStore.SaveAsync(selected with { Name = trimmedName });
                 await DisplayAlertAsync(
                     _english ? "Style duplicated" : "Stijl gekopieerd",
-                    _english ? $"A copy named “{newName.Trim()}” is now in your style library." : $"De kopie “{newName.Trim()}” staat nu in je stijlenbibliotheek.",
+                    _english ? $"A copy named “{trimmedName}” is now in your style library." : $"De kopie “{trimmedName}” staat nu in je stijlenbibliotheek.",
                     "OK");
             }
             catch (Exception ex)
