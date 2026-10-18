@@ -68,6 +68,33 @@ public partial class MainPage : ContentPage
             : $"{_visibleProjects.Count} projecten";
     }
 
+    private static CreatorProject CopyThumbnailDesign(CreatorProject source, CreatorProject target) => target with
+    {
+        ThumbnailTitle = source.ThumbnailTitle,
+        ThumbnailSubtitle = source.ThumbnailSubtitle,
+        ThumbnailTheme = source.ThumbnailTheme,
+        ThumbnailImagePath = source.ThumbnailImagePath,
+        ThumbnailImageFit = source.ThumbnailImageFit,
+        ThumbnailTextAlignment = source.ThumbnailTextAlignment,
+        ThumbnailTitleSize = source.ThumbnailTitleSize,
+        ThumbnailSubtitleSize = source.ThumbnailSubtitleSize,
+        ThumbnailFontFamily = source.ThumbnailFontFamily,
+        ThumbnailLayout = source.ThumbnailLayout,
+        ThumbnailTextColor = source.ThumbnailTextColor,
+        ThumbnailTextOutlineColor = source.ThumbnailTextOutlineColor,
+        ThumbnailTextOutlineThickness = source.ThumbnailTextOutlineThickness,
+        ThumbnailTextPanelStyle = source.ThumbnailTextPanelStyle,
+        ThumbnailTextPanelOpacity = source.ThumbnailTextPanelOpacity,
+        ThumbnailTextPanelPadding = source.ThumbnailTextPanelPadding,
+        ThumbnailTextPanelCorners = source.ThumbnailTextPanelCorners,
+        ThumbnailTextPanelBorder = source.ThumbnailTextPanelBorder,
+        ThumbnailTextPanelBorderColor = source.ThumbnailTextPanelBorderColor,
+        ThumbnailTextPanelBorderThickness = source.ThumbnailTextPanelBorderThickness,
+        ThumbnailTextPanelBorderOpacity = source.ThumbnailTextPanelBorderOpacity,
+        ThumbnailTextPlacement = source.ThumbnailTextPlacement,
+        UpdatedAt = DateTimeOffset.UtcNow
+    };
+
     private async void OnEditThumbnailClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id) return;
@@ -535,6 +562,13 @@ public partial class MainPage : ContentPage
             CornerRadius = 12
         };
         var save = new Button { Text = _english ? "Save design" : "Ontwerp opslaan", BackgroundColor = Color.FromArgb("#7C3AED"), TextColor = Colors.White, CornerRadius = 12 };
+        var reuseDesignButton = new Button
+        {
+            Text = _english ? "Reuse design in another project" : "Ontwerp hergebruiken in ander project",
+            BackgroundColor = Color.FromArgb("#155EAA"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -600,6 +634,7 @@ public partial class MainPage : ContentPage
                         new Label { Text = _english ? "Text placement" : "Tekstpositie", TextColor = Colors.White },
                         titlePlacementPicker,
                         chooseImageButton,
+                        reuseDesignButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -651,6 +686,64 @@ public partial class MainPage : ContentPage
             {
                 await DisplayAlertAsync(_english ? "Export failed" : "Exporteren mislukt", ex.Message, _english ? "OK" : "Oké");
             }
+        };
+        reuseDesignButton.Clicked += async (_, _) =>
+        {
+            var headline = titleEntry.Text?.Trim() ?? string.Empty;
+            var allProjects = await _store.LoadAsync();
+            var targets = allProjects.Where(p => p.Id != project.Id && !p.IsArchived).ToList();
+            if (targets.Count == 0)
+            {
+                await DisplayAlertAsync(
+                    _english ? "No destination projects" : "Geen doelprojecten",
+                    _english ? "Create another project first, then reuse this design." : "Maak eerst een ander project aan en hergebruik daarna dit ontwerp.",
+                    "OK");
+                return;
+            }
+
+            var options = targets.Select(p => p.Title).ToArray();
+            var selectedTitle = await DisplayActionSheetAsync(
+                _english ? "Apply design to which project?" : "Op welk project wil je dit ontwerp toepassen?",
+                _english ? "Cancel" : "Annuleren",
+                null,
+                options);
+            if (string.IsNullOrWhiteSpace(selectedTitle) ||
+                selectedTitle == (_english ? "Cancel" : "Annuleren"))
+                return;
+
+            var target = targets.FirstOrDefault(p => p.Title == selectedTitle);
+            if (target is null) return;
+
+            var design = project with
+            {
+                ThumbnailTitle = headline,
+                ThumbnailSubtitle = subtitleEntry.Text?.Trim() ?? string.Empty,
+                ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
+                ThumbnailImagePath = selectedImagePath,
+                ThumbnailImageFit = imageFitPicker.SelectedIndex == 1 ? "Fit" : "Cover",
+                ThumbnailTextAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center",
+                ThumbnailTitleSize = titleSizePicker.SelectedItem?.ToString() ?? "Medium",
+                ThumbnailSubtitleSize = subtitleSizePicker.SelectedItem?.ToString() ?? "Medium",
+                ThumbnailFontFamily = fontFamilyPicker.SelectedItem?.ToString() ?? "Arial",
+                ThumbnailLayout = layoutPicker.SelectedItem?.ToString() ?? "Center",
+                ThumbnailTextColor = textColorPicker.SelectedItem?.ToString() ?? "White",
+                ThumbnailTextOutlineColor = outlineColorPicker.SelectedItem?.ToString() ?? "Black",
+                ThumbnailTextOutlineThickness = outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium",
+                ThumbnailTextPanelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark",
+                ThumbnailTextPanelOpacity = panelOpacityPicker.SelectedItem?.ToString() ?? "Medium",
+                ThumbnailTextPanelPadding = panelPaddingPicker.SelectedItem?.ToString() ?? "Normal",
+                ThumbnailTextPanelCorners = panelCornersPicker.SelectedItem?.ToString() ?? "Rounded",
+                ThumbnailTextPanelBorder = panelBorderPicker.SelectedItem?.ToString() ?? "None",
+                ThumbnailTextPanelBorderColor = panelBorderColorPicker.SelectedItem?.ToString() ?? "White",
+                ThumbnailTextPanelBorderThickness = panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium",
+                ThumbnailTextPanelBorderOpacity = panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong",
+                ThumbnailTextPlacement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center"
+            };
+            await _store.UpdateAsync(CopyThumbnailDesign(design, target));
+            await DisplayAlertAsync(
+                _english ? "Design copied" : "Ontwerp overgenomen",
+                _english ? $"The thumbnail design was copied to “{target.Title}”." : $"Het thumbnailontwerp is overgenomen in “{target.Title}”.",
+                "OK");
         };
         save.Clicked += async (_, _) =>
         {
