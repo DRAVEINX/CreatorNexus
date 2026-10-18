@@ -31,6 +31,7 @@ public sealed record CreatorProject
     public string ThumbnailTextPanelBorder { get; init; } = "None";
     public string ThumbnailTextPanelBorderColor { get; init; } = "White";
     public string ThumbnailTextPanelBorderThickness { get; init; } = "Medium";
+    public string ThumbnailTextPanelBorderOpacity { get; init; } = "Strong";
     public string ThumbnailTextPlacement { get; init; } = "Center";
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
     public bool IsArchived { get; init; }

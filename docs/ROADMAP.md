@@ -67,3 +67,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Thumbnail-editor enhancement: independently selectable text-panel border color (White, Black, Theme), saved per project and applied to live preview plus PNG/JPG exports.
 
 - Thumbnail-editor enhancement: independently configurable text-panel border thickness (Thin, Medium, Thick), persisted per project and reflected in the live preview plus PNG/JPG exports.
+
+- Thumbnail-editor enhancement: independently configurable text-panel border opacity (Subtle, Medium, Strong), saved per project and applied in live preview plus PNG/JPG exports.
