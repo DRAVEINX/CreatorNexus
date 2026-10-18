@@ -925,14 +925,14 @@ public partial class MainPage : ContentPage
                     ? $"{Math.Max(1, (info.Length + 1023) / 1024)} KB"
                     : $"{info.Length / (1024d * 1024d):0.0} MB";
                 details = _english
-                    ? $"Name: {GetMediaDisplayName(selectedLine)}\\nType: {info.Extension.ToUpperInvariant()}\\nSize: {size}\\nStatus: Available locally"
-                    : $"Naam: {GetMediaDisplayName(selectedLine)}\\nType: {info.Extension.ToUpperInvariant()}\\nGrootte: {size}\\nStatus: Lokaal beschikbaar";
+                    ? $"Name: {GetMediaDisplayName(selectedLine)}\nType: {info.Extension.ToUpperInvariant()}\nSize: {size}\nStatus: Available locally"
+                    : $"Naam: {GetMediaDisplayName(selectedLine)}\nType: {info.Extension.ToUpperInvariant()}\nGrootte: {size}\nStatus: Lokaal beschikbaar";
             }
             else
             {
                 details = _english
-                    ? $"Name: {GetMediaDisplayName(selectedLine)}\\nStatus: Reference only or local file missing.\\nLocation: {string.IsNullOrWhiteSpace(path) ? "No local path stored" : path}"
-                    : $"Naam: {GetMediaDisplayName(selectedLine)}\\nStatus: Alleen verwijzing of lokaal bestand ontbreekt.\\nLocatie: {string.IsNullOrWhiteSpace(path) ? "Geen lokaal pad opgeslagen" : path}";
+                    ? $"Name: {GetMediaDisplayName(selectedLine)}\nStatus: Reference only or local file missing.\nLocation: {string.IsNullOrWhiteSpace(path) ? "No local path stored" : path}"
+                    : $"Naam: {GetMediaDisplayName(selectedLine)}\nStatus: Alleen verwijzing of lokaal bestand ontbreekt.\nLocatie: {string.IsNullOrWhiteSpace(path) ? "Geen lokaal pad opgeslagen" : path}";
             }
 
             await DisplayAlertAsync(
