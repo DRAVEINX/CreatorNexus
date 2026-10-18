@@ -53,6 +53,66 @@ public sealed class ProjectStore
         finally { _gate.Release(); }
     }
 
+    /// <summary>Exports the current project collection as a portable JSON backup.</summary>
+    public async Task ExportBackupAsync(string destinationPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
+        await _gate.WaitAsync();
+        try
+        {
+            var projects = await LoadCoreAsync();
+            var fullPath = Path.GetFullPath(destinationPath);
+            var directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            var tempPath = fullPath + ".tmp";
+            try
+            {
+                await using (var stream = File.Create(tempPath))
+                {
+                    await JsonSerializer.SerializeAsync(stream, projects, Options);
+                    await stream.FlushAsync();
+                }
+                File.Move(tempPath, fullPath, true);
+            }
+            finally
+            {
+                if (File.Exists(tempPath)) File.Delete(tempPath);
+            }
+        }
+        finally { _gate.Release(); }
+    }
+
+    /// <summary>Validates a JSON backup before replacing the current project collection.</summary>
+    public async Task RestoreBackupAsync(string sourcePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
+        var fullPath = Path.GetFullPath(sourcePath);
+        if (!File.Exists(fullPath))
+            throw new FileNotFoundException("The selected CreatorNexus backup was not found.", fullPath);
+
+        await _gate.WaitAsync();
+        try
+        {
+            List<CreatorProject> projects;
+            try
+            {
+                await using var stream = File.OpenRead(fullPath);
+                projects = await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options)
+                    ?? throw new InvalidDataException("The backup does not contain a project collection.");
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidDataException("The selected backup is not valid CreatorNexus JSON. Existing projects were not changed.", ex);
+            }
+
+            if (projects.Any(p => p.Id == Guid.Empty) || projects.Select(p => p.Id).Distinct().Count() != projects.Count)
+                throw new InvalidDataException("The backup contains invalid or duplicate project IDs. Existing projects were not changed.");
+
+            await SaveCoreAsync(projects);
+        }
+        finally { _gate.Release(); }
+    }
+
     private async Task<IReadOnlyList<CreatorProject>> LoadCoreAsync()
     {
         if (!File.Exists(_filePath)) return Array.Empty<CreatorProject>();

@@ -33,3 +33,7 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - If saved JSON is malformed, surface a clear data-integrity error rather than treating the library as empty.
 - Confirm a failed save leaves the existing primary file intact and temporary files are cleaned up.
 - Verify backup retention and recovery behavior on Android and Windows before release.
+
+- Export the saved project collection to a portable JSON backup file.
+- Restore only after parsing and validating the selected backup; reject malformed JSON and duplicate/empty project IDs without replacing existing projects.
+- Verify export and restore manually on Android and Windows, including a backup made on one platform and restored on another.

@@ -75,3 +75,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Project storage now preserves the previous valid file as an automatic `.bak` before replacing the primary JSON file.
 - Malformed project JSON raises a data-integrity error instead of silently returning an empty project list.
 - Full user-facing backup/restore, backup validation and migration tests remain planned work.
+
+- Added storage-layer APIs to export a portable JSON backup and restore a validated backup while rejecting malformed data and duplicate/empty project IDs. User-facing buttons/file-picker integration and cross-platform manual verification remain follow-up work.
