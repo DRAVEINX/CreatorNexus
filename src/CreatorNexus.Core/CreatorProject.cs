@@ -10,6 +10,22 @@ public sealed record CreatorProject
     public string Notes { get; init; } = string.Empty;
     public string Tags { get; init; } = string.Empty;
     public string Checklist { get; init; } = string.Empty;
+
+    // Derived display value; calculated from the saved checklist and not stored separately.
+    public string ChecklistProgress
+    {
+        get
+        {
+            var tasks = Checklist.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (tasks.Length == 0)
+                return "0/0 • 0%";
+
+            var completed = tasks.Count(task =>
+                task.StartsWith("[x]", StringComparison.OrdinalIgnoreCase));
+            var percentage = (int)Math.Round(completed * 100d / tasks.Length);
+            return $"{completed}/{tasks.Length} • {percentage}%";
+        }
+    }
     public string Script { get; init; } = string.Empty;
     public string MediaLibrary { get; init; } = string.Empty;
     public string ThumbnailTitle { get; init; } = string.Empty;
