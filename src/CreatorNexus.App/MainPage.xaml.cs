@@ -1231,14 +1231,51 @@ public partial class MainPage : ContentPage
         if (project is null)
             return;
 
+        var markNextTask = _english ? "Mark next open task complete" : "Volgende open taak afvinken";
+        var reopenTask = _english ? "Reopen last completed task" : "Laatste afgeronde taak heropenen";
         var templateNames = _english
-            ? new[] { "Custom / keep current", "YouTube video", "Short / Reel / TikTok", "Podcast episode", "Livestream", "Thumbnail design" }
-            : new[] { "Zelf aanpassen / huidige behouden", "YouTube-video", "Short / Reel / TikTok", "Podcastaflevering", "Livestream", "Thumbnail ontwerpen" };
+            ? new[] { "Custom / keep current", "YouTube video", "Short / Reel / TikTok", "Podcast episode", "Livestream", "Thumbnail design", markNextTask, reopenTask }
+            : new[] { "Zelf aanpassen / huidige behouden", "YouTube-video", "Short / Reel / TikTok", "Podcastaflevering", "Livestream", "Thumbnail ontwerpen", markNextTask, reopenTask };
         var templateChoice = await DisplayActionSheetAsync(
             _english ? "Checklist template" : "Checklist-sjabloon",
             _english ? "Cancel" : "Annuleren", null, templateNames);
         if (templateChoice == (_english ? "Cancel" : "Annuleren") || templateChoice is null)
             return;
+
+        if (templateChoice == markNextTask || templateChoice == reopenTask)
+        {
+            var tasks = project.Checklist
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+            var targetIndex = templateChoice == markNextTask
+                ? tasks.FindIndex(task => !task.StartsWith("[x]", StringComparison.OrdinalIgnoreCase))
+                : tasks.FindLastIndex(task => task.StartsWith("[x]", StringComparison.OrdinalIgnoreCase));
+
+            if (targetIndex < 0)
+            {
+                await DisplayAlertAsync(
+                    _english ? "Checklist" : "Checklist",
+                    templateChoice == markNextTask
+                        ? (_english ? "There are no open tasks to complete." : "Er zijn geen open taken om af te vinken.")
+                        : (_english ? "There are no completed tasks to reopen." : "Er zijn geen afgeronde taken om te heropenen."),
+                    "OK");
+                return;
+            }
+
+            var taskText = tasks[targetIndex]
+                .Replace("[x]", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("[ ]", "", StringComparison.Ordinal)
+                .Trim();
+            tasks[targetIndex] = templateChoice == markNextTask ? $"[x] {taskText}" : $"[ ] {taskText}";
+
+            await _store.UpdateAsync(project with
+            {
+                Checklist = string.Join("; ", tasks),
+                UpdatedAt = DateTimeOffset.UtcNow
+            });
+            await LoadProjectsAsync();
+            return;
+        }
 
         var templateTasks = templateChoice switch
         {
