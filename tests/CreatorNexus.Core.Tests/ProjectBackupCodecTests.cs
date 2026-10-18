@@ -55,6 +55,49 @@ public class ProjectBackupCodecTests
     }
 
     [Fact]
+    public void DeserializeRejectsMalformedChecksum()
+    {
+        var json = ProjectBackupCodec.Serialize(new[] { new CreatorProject { Title = "Valid" } });
+        using var document = JsonDocument.Parse(json);
+        var checksum = document.RootElement.GetProperty("contentSha256").GetString()!;
+        var changed = json.Replace(checksum, "not-a-valid-checksum", StringComparison.Ordinal);
+
+        var error = Assert.Throws<InvalidDataException>(() => ProjectBackupCodec.Deserialize(changed));
+
+        Assert.Contains("checksum is invalid", error.Message);
+    }
+
+    [Fact]
+    public void DeserializeRejectsMissingChecksum()
+    {
+        var json = ProjectBackupCodec.Serialize(new[] { new CreatorProject { Title = "Valid" } });
+        using var document = JsonDocument.Parse(json);
+        var checksum = document.RootElement.GetProperty("contentSha256").GetString()!;
+        var changed = json.Replace(checksum, "", StringComparison.Ordinal);
+
+        var error = Assert.Throws<InvalidDataException>(() => ProjectBackupCodec.Deserialize(changed));
+
+        Assert.Contains("missing its integrity checksum", error.Message);
+    }
+
+    [Fact]
+    public void DeserializeRejectsMissingProjectCollection()
+    {
+        const string json = """
+            {
+              "formatVersion": 1,
+              "createdAtUtc": "2026-10-18T00:00:00+00:00",
+              "contentSha256": "",
+              "projects": null
+            }
+            """;
+
+        var error = Assert.Throws<InvalidDataException>(() => ProjectBackupCodec.Deserialize(json));
+
+        Assert.Contains("does not contain a project collection", error.Message);
+    }
+
+    [Fact]
     public void DeserializeAcceptsLegacyJsonArrayBackup()
     {
         var legacyJson = JsonSerializer.Serialize(new[] { new CreatorProject { Title = "Older backup" } });

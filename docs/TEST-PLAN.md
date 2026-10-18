@@ -49,4 +49,5 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Versioned backup exports include a format version, UTC creation timestamp and SHA-256 checksum.
 - Restore rejects unsupported versions and modified payloads before replacing current projects.
 - Older bare JSON-array backups remain importable for compatibility.
+- Missing and malformed checksum values, plus a missing project collection, are rejected.
 - Attempt an oversized export and confirm the previous destination file remains unchanged and temporary files are cleaned up.
