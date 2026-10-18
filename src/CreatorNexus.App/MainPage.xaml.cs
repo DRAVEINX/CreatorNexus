@@ -609,14 +609,18 @@ public partial class MainPage : ContentPage
         const int width = 1280;
         const int height = 720;
         using var bitmap = new SKBitmap(width, height);
+        using var titleTypeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Bold);
+        using var subtitleTypeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal);
+        using var titleFont = new SKFont(titleTypeface, titleSize switch { "Small" => 60, "Large" => 92, _ => 76 });
+        using var subtitleFont = new SKFont(subtitleTypeface, subtitleSize switch { "Small" => 26, "Large" => 42, _ => 34 });
         using (var canvas = new SKCanvas(bitmap))
         using (var panelPaint = new SKPaint { Color = new SKColor(12, 12, 24, 70), IsAntialias = true })
         using (var textPanelPaint = new SKPaint { Color = panelStyle switch { "Light" => new SKColor(230, 235, 245, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)), "Theme" => new SKColor(background.Red, background.Green, background.Blue, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)), "None" => SKColors.Transparent, _ => new SKColor(12, 12, 24, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)) }, IsAntialias = true })
         using (var textPanelBorderPaint = new SKPaint { Color = (panelBorderColor switch { "Black" => SKColors.Black, "Theme" => background, _ => SKColors.White }).WithAlpha((byte)(panelBorderOpacity == "Subtle" ? 102 : panelBorderOpacity == "Medium" ? 179 : 255)), Style = SKPaintStyle.Stroke, StrokeWidth = panelBorderThickness switch { "Thin" => 2f, "Thick" => 7f, _ => 4f }, IsAntialias = true })
-        using (var titleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 3, "Thick" => 11, _ => 7 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round, TextSize = titleSize switch { "Small" => 60, "Large" => 92, _ => 76 }, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
-        using (var subtitleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 2, "Thick" => 8, _ => 5 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round, TextSize = subtitleSize switch { "Small" => 26, "Large" => 42, _ => 34 }, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
-        using (var titlePaint = new SKPaint { Color = textColor switch { "Yellow" => SKColors.Yellow, "Black" => SKColors.Black, _ => SKColors.White }, TextSize = titleSize switch { "Small" => 60, "Large" => 92, _ => 76 }, IsAntialias = true, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
-        using (var subtitlePaint = new SKPaint { Color = textColor switch { "Yellow" => SKColors.Yellow, "Black" => SKColors.Black, _ => SKColors.White }, TextSize = subtitleSize switch { "Small" => 26, "Large" => 42, _ => 34 }, IsAntialias = true, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
+        using (var titleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 3, "Thick" => 11, _ => 7 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round })
+        using (var subtitleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 2, "Thick" => 8, _ => 5 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round })
+        using (var titlePaint = new SKPaint { Color = textColor switch { "Yellow" => SKColors.Yellow, "Black" => SKColors.Black, _ => SKColors.White }, IsAntialias = true })
+        using (var subtitlePaint = new SKPaint { Color = textColor switch { "Yellow" => SKColors.Yellow, "Black" => SKColors.Black, _ => SKColors.White }, IsAntialias = true })
         using (var accentPaint = new SKPaint { Color = SKColors.White, IsAntialias = true })
         {
             var skTextAlignment = textAlignment switch
@@ -625,10 +629,6 @@ public partial class MainPage : ContentPage
                 "Right" => SKTextAlign.Right,
                 _ => SKTextAlign.Center
             };
-            titlePaint.TextAlign = skTextAlignment;
-            subtitlePaint.TextAlign = skTextAlignment;
-            titleOutlinePaint.TextAlign = skTextAlignment;
-            subtitleOutlinePaint.TextAlign = skTextAlignment;
             var textX = textAlignment switch
             {
                 "Left" => 120f,
@@ -654,8 +654,8 @@ public partial class MainPage : ContentPage
             else canvas.Clear(background);
             canvas.DrawRoundRect(new SKRoundRect(new SKRect(36, 36, width - 36, height - 36), 34, 34), panelPaint);
             canvas.DrawRoundRect(new SKRoundRect(new SKRect(70, height - 96, width - 70, height - 82), 7, 7), accentPaint);
-            var titleLines = WrapThumbnailText(headline, titlePaint, width - 150).Take(3).ToArray();
-            var subtitleLines = WrapThumbnailText(subtitle, subtitlePaint, width - 180).Take(2).ToArray();
+            var titleLines = WrapThumbnailText(headline, titleFont, width - 150).Take(3).ToArray();
+            var subtitleLines = WrapThumbnailText(subtitle, subtitleFont, width - 180).Take(2).ToArray();
             const float titleLineHeight = 88f;
             const float subtitleLineHeight = 44f;
             var totalHeight = titleLines.Length * titleLineHeight + (subtitleLines.Length > 0 ? 38 + subtitleLines.Length * subtitleLineHeight : 0);
@@ -684,8 +684,8 @@ public partial class MainPage : ContentPage
             }
             foreach (var line in titleLines)
             {
-                if (outlineColor != "None") canvas.DrawText(line, textX, y, titleOutlinePaint);
-                canvas.DrawText(line, textX, y, titlePaint);
+                if (outlineColor != "None") canvas.DrawText(line, textX, y, skTextAlignment, titleFont, titleOutlinePaint);
+                canvas.DrawText(line, textX, y, skTextAlignment, titleFont, titlePaint);
                 y += titleLineHeight;
             }
             if (subtitleLines.Length > 0)
@@ -693,8 +693,8 @@ public partial class MainPage : ContentPage
                 y += 12;
                 foreach (var line in subtitleLines)
                 {
-                    if (outlineColor != "None") canvas.DrawText(line, textX, y, subtitleOutlinePaint);
-                    canvas.DrawText(line, textX, y, subtitlePaint);
+                    if (outlineColor != "None") canvas.DrawText(line, textX, y, skTextAlignment, subtitleFont, subtitleOutlinePaint);
+                    canvas.DrawText(line, textX, y, skTextAlignment, subtitleFont, subtitlePaint);
                     y += subtitleLineHeight;
                 }
             }
@@ -713,14 +713,14 @@ public partial class MainPage : ContentPage
         return path;
     }
 
-    private static IEnumerable<string> WrapThumbnailText(string text, SKPaint paint, float maxWidth)
+    private static IEnumerable<string> WrapThumbnailText(string text, SKFont font, float maxWidth)
     {
         if (string.IsNullOrWhiteSpace(text)) yield break;
         var line = string.Empty;
         foreach (var word in text.Split(' ', StringSplitOptions.RemoveEmptyEntries))
         {
             var candidate = string.IsNullOrEmpty(line) ? word : $"{line} {word}";
-            if (line.Length > 0 && paint.MeasureText(candidate) > maxWidth)
+            if (line.Length > 0 && font.MeasureText(candidate) > maxWidth)
             {
                 yield return line;
                 line = word;
@@ -809,7 +809,7 @@ public partial class MainPage : ContentPage
             : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Verwijzingen bewerken", "Annuleren" };
         if (entries.Count == 0)
         {
-            var emptyAction = await DisplayActionSheet(
+            var emptyAction = await DisplayActionSheetAsync(
                 _english ? "Project media library is empty" : "De mediabibliotheek is leeg",
                 _english ? "Cancel" : "Annuleren", null,
                 _english ? "Add a text reference" : "Tekstverwijzing toevoegen");
@@ -818,7 +818,7 @@ public partial class MainPage : ContentPage
             return;
         }
 
-        var selectedEntry = await DisplayActionSheet(
+        var selectedEntry = await DisplayActionSheetAsync(
             _english ? $"Media library • {entries.Count} entries" : $"Mediabibliotheek • {entries.Count} items",
             _english ? "Cancel" : "Annuleren", null,
             entries.Select((line, index) => $"{index + 1}. {GetMediaDisplayName(line)}").ToArray());
@@ -831,7 +831,7 @@ public partial class MainPage : ContentPage
         if (selectedIndex < 0) return;
 
         var selectedLine = entries[selectedIndex];
-        var action = await DisplayActionSheet(
+        var action = await DisplayActionSheetAsync(
             GetMediaDisplayName(selectedLine),
             _english ? "Cancel" : "Annuleren", null, actions.Take(3).ToArray());
         if (action == actions[0])
@@ -998,7 +998,7 @@ public partial class MainPage : ContentPage
         var choices = _english
             ? new[] { "YouTube video", "Short-form video", "Tutorial", "Livestream", "Cancel" }
             : new[] { "YouTube-video", "Korte video", "Tutorial", "Livestream", "Annuleren" };
-        var selected = await DisplayActionSheet(
+        var selected = await DisplayActionSheetAsync(
             _english ? "Choose a project template" : "Kies een projectsjabloon",
             _english ? "Cancel" : "Annuleren",
             null,
