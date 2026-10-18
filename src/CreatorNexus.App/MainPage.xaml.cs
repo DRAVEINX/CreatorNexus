@@ -1227,11 +1227,21 @@ public partial class MainPage : ContentPage
 
         var templateTasks = templateChoice switch
         {
-            "YouTube video" or "YouTube-video" => new[] { "Topic and goal defined", "Script / outline ready", "Record footage and audio", "Edit video", "Thumbnail and title checked", "Description, tags and subtitles", "Final playback check", "Schedule or publish" },
-            "Short / Reel / TikTok" => new[] { "Hook in first seconds", "Vertical 9:16 framing", "Record clip", "Captions checked", "Sound and rights checked", "Cover and caption ready", "Preview and publish" },
-            "Podcast episode" or "Podcastaflevering" => new[] { "Topic and guest confirmed", "Questions / outline ready", "Microphones tested", "Record episode", "Edit audio", "Intro, outro and show notes", "Listen to final export", "Schedule or publish" },
-            "Livestream" => new[] { "Stream title and category", "Scene and audio test", "Internet and recording checked", "Alerts and chat ready", "Go-live announcement", "Start stream", "Save VOD / highlights", "Review after stream" },
-            "Thumbnail design" or "Thumbnail ontwerpen" => new[] { "Choose main image", "Set headline and hierarchy", "Check contrast and readability", "Check mobile-size preview", "Check crop / image framing", "Export PNG or JPG", "Review final file" },
+            "YouTube video" or "YouTube-video" => _english
+                ? new[] { "Define topic and goal", "Prepare script / outline", "Record video and audio", "Edit the video", "Check thumbnail and title", "Prepare description, tags and subtitles", "Review the final video", "Schedule or publish" }
+                : new[] { "Onderwerp en doel bepalen", "Script of opzet voorbereiden", "Video en audio opnemen", "Video monteren", "Thumbnail en titel controleren", "Beschrijving, tags en ondertiteling voorbereiden", "Eindvideo controleren", "Inplannen of publiceren" },
+            "Short / Reel / TikTok" => _english
+                ? new[] { "Create a hook for the first seconds", "Set vertical 9:16 framing", "Record the clip", "Check captions", "Check audio and usage rights", "Prepare cover and caption", "Preview and publish" }
+                : new[] { "Aandachtstrekker voor de eerste seconden bedenken", "Verticale beeldverhouding 9:16 instellen", "Clip opnemen", "Ondertiteling controleren", "Audio en gebruiksrechten controleren", "Cover en bijschrift voorbereiden", "Voorbeeld bekijken en publiceren" },
+            "Podcast episode" or "Podcastaflevering" => _english
+                ? new[] { "Confirm topic and guest", "Prepare questions / outline", "Test microphones", "Record the episode", "Edit audio", "Prepare intro, outro and show notes", "Listen to final export", "Schedule or publish" }
+                : new[] { "Onderwerp en gast bevestigen", "Vragen of opzet voorbereiden", "Microfoons testen", "Aflevering opnemen", "Audio monteren", "Intro, outro en shownotes voorbereiden", "Definitieve export beluisteren", "Inplannen of publiceren" },
+            "Livestream" => _english
+                ? new[] { "Set stream title and category", "Test scenes and audio", "Check internet and recording", "Prepare alerts and chat", "Announce the stream", "Start the stream", "Save VOD / highlights", "Review after the stream" }
+                : new[] { "Streamtitel en categorie instellen", "Scènes en audio testen", "Internetverbinding en opname controleren", "Alerts en chat voorbereiden", "Stream aankondigen", "Stream starten", "VOD of hoogtepunten opslaan", "Na afloop evalueren" },
+            "Thumbnail design" or "Thumbnail ontwerpen" => _english
+                ? new[] { "Choose the main image", "Set headline and visual hierarchy", "Check contrast and readability", "Check mobile-size preview", "Check crop / image framing", "Export PNG or JPG", "Review final file" }
+                : new[] { "Hoofdafbeelding kiezen", "Koptekst en visuele hiërarchie instellen", "Contrast en leesbaarheid controleren", "Voorbeeld op mobiel formaat controleren", "Uitsnede en beeldkader controleren", "Exporteren als PNG of JPG", "Eindbestand controleren" },
             _ => Array.Empty<string>()
         };
         var templateText = string.Join("; ", templateTasks);
