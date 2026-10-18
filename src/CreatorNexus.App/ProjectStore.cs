@@ -185,6 +185,11 @@ public sealed class ProjectStore
         try
         {
             await using var stream = File.OpenRead(_filePath);
+            var sizeError = ProjectBackupRules.ValidateBackupSize(stream.Length);
+            if (sizeError is not null)
+                throw new InvalidDataException(
+                    $"The saved CreatorNexus project file exceeds the supported size limit: {sizeError} The original file was preserved at '{_filePath}'.");
+
             var projects = await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options);
             if (projects is null)
                 throw new InvalidDataException(

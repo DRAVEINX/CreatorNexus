@@ -35,6 +35,7 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Saving writes a complete temporary JSON snapshot before replacing the primary project file.
 - When a primary file already exists, preserve its previous contents as a `.bak` file before replacement.
 - If saved JSON is malformed, surface a clear data-integrity error rather than treating the library as empty.
+- If the saved project file exceeds the 50 MB safety limit, surface a clear data-integrity error without loading or replacing the original file.
 - Confirm a failed save leaves the existing primary file intact and temporary files are cleaned up. 
 - Verify backup retention and recovery behavior on Android and Windows before release.
 
