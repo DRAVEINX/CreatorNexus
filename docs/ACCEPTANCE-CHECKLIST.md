@@ -39,6 +39,22 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Test keyboard-only navigation, visible focus and readable scaling.
 - [ ] Confirm the artifact can be extracted and run on a clean Windows 11 user profile.
 
+
+## Thumbnail style library import/export
+
+- [ ] Save a thumbnail style preset, restart the app, and confirm the preset is still available.
+- [ ] Export one preset to JSON and verify the file can be selected and imported again.
+- [ ] Import a valid style-library JSON file containing multiple presets; confirm all expected styles appear.
+- [ ] Export the full style library and verify the exported JSON contains the expected presets.
+- [ ] Try malformed JSON and an empty library; confirm the app reports the problem and keeps existing presets.
+- [ ] Try a library containing invalid preset values; confirm it is rejected safely.
+- [ ] Try duplicate preset names inside one import file; confirm the import is rejected with a clear message.
+- [ ] Import presets whose names already exist; cancel the replacement prompt and confirm existing styles remain unchanged.
+- [ ] Repeat the name-collision import and approve replacement; confirm the intended styles are replaced.
+- [ ] Verify the export/share flow and file picker on Android phone, Android tablet and Windows.
+- [ ] Restart the app after import/replacement and confirm the saved library persists.
+
+
 ## Record each test
 
 For every checkbox, record: date, app commit SHA, artifact/run URL, device or Windows version, result (pass/fail/not tested), and a short note for failures. A CI pass should never automatically mark manual acceptance as passed.
