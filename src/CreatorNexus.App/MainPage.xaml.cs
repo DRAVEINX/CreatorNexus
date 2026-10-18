@@ -1216,13 +1216,38 @@ public partial class MainPage : ContentPage
         if (project is null)
             return;
 
+        var templateNames = _english
+            ? new[] { "Custom / keep current", "YouTube video", "Short / Reel / TikTok", "Podcast episode", "Livestream", "Thumbnail design" }
+            : new[] { "Zelf aanpassen / huidige behouden", "YouTube-video", "Short / Reel / TikTok", "Podcastaflevering", "Livestream", "Thumbnail ontwerpen" };
+        var templateChoice = await DisplayActionSheetAsync(
+            _english ? "Checklist template" : "Checklist-sjabloon",
+            _english ? "Cancel" : "Annuleren", null, templateNames);
+        if (templateChoice == (_english ? "Cancel" : "Annuleren") || templateChoice is null)
+            return;
+
+        var templateTasks = templateChoice switch
+        {
+            "YouTube video" or "YouTube-video" => new[] { "Topic and goal defined", "Script / outline ready", "Record footage and audio", "Edit video", "Thumbnail and title checked", "Description, tags and subtitles", "Final playback check", "Schedule or publish" },
+            "Short / Reel / TikTok" => new[] { "Hook in first seconds", "Vertical 9:16 framing", "Record clip", "Captions checked", "Sound and rights checked", "Cover and caption ready", "Preview and publish" },
+            "Podcast episode" or "Podcastaflevering" => new[] { "Topic and guest confirmed", "Questions / outline ready", "Microphones tested", "Record episode", "Edit audio", "Intro, outro and show notes", "Listen to final export", "Schedule or publish" },
+            "Livestream" => new[] { "Stream title and category", "Scene and audio test", "Internet and recording checked", "Alerts and chat ready", "Go-live announcement", "Start stream", "Save VOD / highlights", "Review after stream" },
+            "Thumbnail design" or "Thumbnail ontwerpen" => new[] { "Choose main image", "Set headline and hierarchy", "Check contrast and readability", "Check mobile-size preview", "Check crop / image framing", "Export PNG or JPG", "Review final file" },
+            _ => Array.Empty<string>()
+        };
+        var templateText = string.Join("; ", templateTasks);
+        var initialChecklist = string.IsNullOrWhiteSpace(templateText)
+            ? project.Checklist
+            : string.IsNullOrWhiteSpace(project.Checklist)
+                ? templateText
+                : $"{project.Checklist.Trim().TrimEnd(';')}; {templateText}";
+
         var checklist = await DisplayPromptAsync(
             _english ? "Production checklist" : "Productiechecklist",
             _english ? "Separate tasks with semicolons. Add [x] before a completed task." : "Scheid taken met puntkomma’s. Zet [x] voor een afgeronde taak.",
             _english ? "Save" : "Opslaan",
             _english ? "Cancel" : "Annuleren",
             maxLength: 3000,
-            initialValue: project.Checklist);
+            initialValue: initialChecklist);
         if (checklist is null)
             return;
 
