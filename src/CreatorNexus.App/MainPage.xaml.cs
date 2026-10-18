@@ -1416,6 +1416,44 @@ public partial class MainPage : ContentPage
         }
     }
 
+    private async void OnRecoverLocalBackupClicked(object sender, EventArgs e)
+    {
+        var confirmed = await DisplayAlertAsync(
+            _english ? "Recover local backup?" : "Lokale back-up herstellen?",
+            _english
+                ? "This restores the last local .bak snapshot and replaces the current project file. The recovery backup itself is kept. Continue?"
+                : "Dit zet de laatste lokale .bak-kopie terug en vervangt het huidige projectbestand. De herstelkopie zelf blijft behouden. Doorgaan?",
+            _english ? "Recover" : "Herstellen",
+            _english ? "Cancel" : "Annuleren");
+        if (!confirmed)
+            return;
+
+        try
+        {
+            await _store.RecoverFromLocalBackupAsync();
+            _showArchived = false;
+            _showFavoritesOnly = false;
+            _showScheduleOnly = false;
+            ProjectSearchBar.Text = string.Empty;
+            await LoadProjectsAsync();
+            await DisplayAlertAsync(
+                _english ? "Recovery complete" : "Herstel voltooid",
+                _english
+                    ? "The validated local backup has been restored. The .bak recovery file was preserved."
+                    : "De gecontroleerde lokale back-up is teruggezet. Het .bak-herstelbestand is behouden.",
+                _english ? "OK" : "Oké");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                _english ? "Recovery failed" : "Herstellen mislukt",
+                _english
+                    ? $"The local backup could not be restored. The saved project file was not changed by the recovery step. Details: {ex.Message}"
+                    : $"De lokale back-up kon niet worden hersteld. Het opgeslagen projectbestand is door deze herstelactie niet gewijzigd. Details: {ex.Message}",
+                _english ? "OK" : "Oké");
+        }
+    }
+
     private void OnLanguageClicked(object sender, EventArgs e)
     {
         _english = !_english;
@@ -1433,6 +1471,7 @@ public partial class MainPage : ContentPage
         NewProjectEntry.Placeholder = _english ? "Name your new project…" : "Naam van je nieuwe project…";
         ExportBackupButton.Text = _english ? "Create backup" : "Back-up maken";
         RestoreBackupButton.Text = _english ? "Restore backup" : "Back-up terugzetten";
+        RecoverLocalBackupButton.Text = _english ? "Recover local backup" : "Herstel lokale back-up";
         AddButton.Text = _english ? "+ New" : "+ Nieuw";
         TemplateButton.Text = _english ? "Template" : "Sjabloon";
         ProjectsHeading.Text = _showScheduleOnly

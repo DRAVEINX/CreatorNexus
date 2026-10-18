@@ -122,6 +122,63 @@ public sealed class ProjectStore
         finally { _gate.Release(); }
     }
 
+    /// <summary>Recovers projects from the validated local .bak snapshot without replacing that recovery source.</summary>
+    public async Task RecoverFromLocalBackupAsync()
+    {
+        var backupPath = _filePath + ".bak";
+        await _gate.WaitAsync();
+        try
+        {
+            if (!File.Exists(backupPath))
+                throw new FileNotFoundException("No local CreatorNexus recovery backup was found.", backupPath);
+
+            List<CreatorProject> projects;
+            try
+            {
+                string json;
+                await using (var stream = File.OpenRead(backupPath))
+                {
+                    var sizeError = ProjectBackupRules.ValidateBackupSize(stream.Length);
+                    if (sizeError is not null)
+                        throw new InvalidDataException($"{sizeError} The saved project file was not changed.");
+
+                    using var reader = new StreamReader(stream);
+                    json = await reader.ReadToEndAsync();
+                }
+
+                projects = ProjectBackupRules.ReadAndValidateBackup(json);
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidDataException("The local recovery backup is not valid CreatorNexus JSON. The saved project file was not changed.", ex);
+            }
+
+            // Do not use SaveCoreAsync here: it would copy a possibly corrupted primary file over the good .bak.
+            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            var temp = _filePath + ".recovery.tmp";
+            try
+            {
+                await using (var stream = File.Create(temp))
+                {
+                    await JsonSerializer.SerializeAsync(stream, projects, Options);
+                    await stream.FlushAsync();
+                }
+
+                var sizeError = ProjectBackupRules.ValidateBackupSize(new FileInfo(temp).Length);
+                if (sizeError is not null)
+                    throw new InvalidDataException($"{sizeError} The saved project file was not changed.");
+
+                File.Move(temp, _filePath, true);
+            }
+            finally
+            {
+                if (File.Exists(temp))
+                    File.Delete(temp);
+            }
+        }
+        finally { _gate.Release(); }
+    }
+
     private async Task<IReadOnlyList<CreatorProject>> LoadCoreAsync()
     {
         if (!File.Exists(_filePath)) return Array.Empty<CreatorProject>();

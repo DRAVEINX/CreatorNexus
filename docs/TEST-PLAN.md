@@ -53,3 +53,11 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Attempt an oversized export and confirm the previous destination file remains unchanged and temporary files are cleaned up.
 
 - The app and automated tests share a single parse-and-validation gate; restore must not call the save/replacement path unless the gate returns a validated project list.
+
+
+## Local recovery from the .bak snapshot
+- Create at least two projects so a save produces a previous local `.bak` snapshot.
+- Use **Herstel lokale back-up** and confirm; verify the project list is restored and refreshed.
+- Verify the local `.bak` remains present after successful recovery; recovery must not copy a possibly damaged primary file over it.
+- With no `.bak` file, malformed JSON, duplicate IDs, invalid project fields, or a file over 50 MB, recovery must show an error and must not replace the primary project file.
+- Confirm cancel leaves all files and visible projects unchanged.
