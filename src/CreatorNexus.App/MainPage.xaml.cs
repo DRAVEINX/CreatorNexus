@@ -591,6 +591,13 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var duplicateStyleButton = new Button
+        {
+            Text = _english ? "Duplicate saved style" : "Opgeslagen stijl kopiëren",
+            BackgroundColor = Color.FromArgb("#4C3B82"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -660,6 +667,7 @@ public partial class MainPage : ContentPage
                         saveStyleButton,
                         loadStyleButton,
                         deleteStyleButton,
+                        duplicateStyleButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -795,6 +803,49 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 await DisplayAlertAsync(_english ? "Could not delete style" : "Stijl verwijderen mislukt", ex.Message, "OK");
+            }
+        };
+        duplicateStyleButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var styles = await styleStore.LoadAsync();
+                if (styles.Count == 0)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "No saved styles" : "Geen opgeslagen stijlen",
+                        _english ? "Save a style first, then you can duplicate it." : "Sla eerst een stijl op; daarna kun je deze kopiëren.",
+                        "OK");
+                    return;
+                }
+
+                var selectedName = await DisplayActionSheetAsync(
+                    _english ? "Choose a style to duplicate" : "Kies een stijl om te kopiëren",
+                    _english ? "Cancel" : "Annuleren",
+                    null,
+                    styles.Select(x => x.Name).ToArray());
+                if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren"))
+                    return;
+
+                var selected = styles.FirstOrDefault(x => string.Equals(x.Name, selectedName, StringComparison.OrdinalIgnoreCase));
+                if (selected is null) return;
+
+                var newName = await DisplayPromptAsync(
+                    _english ? "Duplicate style" : "Stijl kopiëren",
+                    _english ? "Choose a new name for the copy." : "Geef de kopie een nieuwe naam.",
+                    initialValue: $"{selected.Name} {( _english ? "copy" : "kopie")}",
+                    maxLength: 50);
+                if (string.IsNullOrWhiteSpace(newName)) return;
+
+                await styleStore.SaveAsync(selected with { Name = newName.Trim() });
+                await DisplayAlertAsync(
+                    _english ? "Style duplicated" : "Stijl gekopieerd",
+                    _english ? $"A copy named “{newName.Trim()}” is now in your style library." : $"De kopie “{newName.Trim()}” staat nu in je stijlenbibliotheek.",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Could not duplicate style" : "Stijl kopiëren mislukt", ex.Message, "OK");
             }
         };
         loadStyleButton.Clicked += async (_, _) =>
