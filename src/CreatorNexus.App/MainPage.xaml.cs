@@ -787,10 +787,26 @@ public partial class MainPage : ContentPage
             if (string.IsNullOrWhiteSpace(name)) return;
             try
             {
-                await styleStore.SaveAsync(BuildStylePreset(name));
+                var trimmedName = name.Trim();
+                var existingStyles = await styleStore.LoadAsync();
+                var existingStyle = existingStyles.FirstOrDefault(x =>
+                    string.Equals(x.Name, trimmedName, StringComparison.OrdinalIgnoreCase));
+                if (existingStyle is not null)
+                {
+                    var replace = await DisplayAlertAsync(
+                        _english ? "Replace saved style?" : "Opgeslagen stijl vervangen?",
+                        _english
+                            ? $"A style named “{existingStyle.Name}” already exists. Replace it with the current settings?"
+                            : $"Er bestaat al een stijl met de naam “{existingStyle.Name}”. Wil je deze vervangen door de huidige instellingen?",
+                        _english ? "Replace" : "Vervangen",
+                        _english ? "Cancel" : "Annuleren");
+                    if (!replace) return;
+                }
+
+                await styleStore.SaveAsync(BuildStylePreset(trimmedName));
                 await DisplayAlertAsync(
                     _english ? "Style saved" : "Stijl opgeslagen",
-                    _english ? $"“{name.Trim()}” is available in your saved styles." : $"“{name.Trim()}” staat nu bij je opgeslagen stijlen.",
+                    _english ? $"“{trimmedName}” is available in your saved styles." : $"“{trimmedName}” staat nu bij je opgeslagen stijlen.",
                     "OK");
             }
             catch (Exception ex)
