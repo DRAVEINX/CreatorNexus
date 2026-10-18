@@ -92,3 +92,9 @@ public class ProjectBackupRulesTests
         Assert.Contains("missing text field", ProjectBackupRules.Validate(projects));
     }
 }
+    [Fact]
+    public void ValidateBackupSizeRejectsNegativeLength()
+    {
+        Assert.Contains("negative", ProjectBackupRules.ValidateBackupSize(-1));
+    }
+

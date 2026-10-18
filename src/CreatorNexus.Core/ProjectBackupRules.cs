@@ -9,6 +9,9 @@ public static class ProjectBackupRules
     /// <summary>Returns an error message when the backup file is too large.</summary>
     public static string? ValidateBackupSize(long sizeInBytes)
     {
+        if (sizeInBytes < 0)
+            return "The backup file has a negative size.";
+
         if (sizeInBytes > MaximumBackupBytes)
             return $"The backup file exceeds the {MaximumBackupBytes / (1024 * 1024)} MB size limit.";
 

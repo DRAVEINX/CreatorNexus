@@ -43,6 +43,6 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Verify export and restore manually on Android and Windows, including a backup made on one platform and restored on another.
 
 - Automated backup-rule tests reject collections over 10,000 projects and explicit null text fields before restore can replace saved data.
-- Backup restore rejects files larger than 50 MB before parsing; automated tests cover the exact limit and the first byte over it.
+- Backup restore rejects files larger than 50 MB before parsing; automated tests cover the exact limit, a negative length, and the first byte over it.
 - Backup export checks the completed temporary file against the same 50 MB limit before replacing the destination, so it never creates an export the restore flow would reject.
 - Attempt an oversized export and confirm the previous destination file remains unchanged and temporary files are cleaned up.
