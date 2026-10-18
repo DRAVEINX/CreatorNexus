@@ -842,11 +842,20 @@ public partial class MainPage : ContentPage
             {
                 try
                 {
-                    await Share.Default.RequestAsync(new ShareFileRequest
+                    var extension = Path.GetExtension(path).ToLowerInvariant();
+                    var imageExtensions = new[] { ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif" };
+                    if (imageExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
                     {
-                        Title = GetMediaDisplayName(selectedLine),
-                        File = new ShareFile(path)
-                    });
+                        await ShowMediaImagePreviewAsync(path, GetMediaDisplayName(selectedLine));
+                    }
+                    else
+                    {
+                        await Share.Default.RequestAsync(new ShareFileRequest
+                        {
+                            Title = GetMediaDisplayName(selectedLine),
+                            File = new ShareFile(path)
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -904,6 +913,40 @@ public partial class MainPage : ContentPage
         {
             await EditMediaReferencesAsync(project);
         }
+    }
+
+    private async Task ShowMediaImagePreviewAsync(string path, string displayName)
+    {
+        var image = new Image
+        {
+            Source = ImageSource.FromFile(path),
+            Aspect = Aspect.AspectFit,
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill
+        };
+        var closeButton = new Button
+        {
+            Text = _english ? "Close preview" : "Voorbeeld sluiten",
+            BackgroundColor = Color.FromArgb("#30264A"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var previewPage = new ContentPage
+        {
+            Title = displayName,
+            BackgroundColor = Color.FromArgb("#11111B"),
+            Padding = new Thickness(16),
+            Content = new Grid
+            {
+                RowDefinitions = { new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto) },
+                RowSpacing = 12,
+                Children = { image, closeButton }
+            }
+        };
+        Grid.SetRow(image, 0);
+        Grid.SetRow(closeButton, 1);
+        closeButton.Clicked += async (_, _) => await Navigation.PopModalAsync();
+        await Navigation.PushModalAsync(previewPage);
     }
 
     private static string GetMediaDisplayName(string entry)
