@@ -22,6 +22,7 @@ public sealed record CreatorProject
     public string ThumbnailLayout { get; init; } = "Center";
     public string ThumbnailTextColor { get; init; } = "White";
     public string ThumbnailTextOutlineColor { get; init; } = "Black";
+    public string ThumbnailTextOutlineThickness { get; init; } = "Medium";
     public string ThumbnailTextPanelStyle { get; init; } = "Dark";
     public string ThumbnailTextPlacement { get; init; } = "Center";
     public ProjectStatus Status { get; init; } = ProjectStatus.Idea;
