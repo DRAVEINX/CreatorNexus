@@ -613,6 +613,20 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var exportStyleLibraryButton = new Button
+        {
+            Text = _english ? "Export all styles" : "Alle stijlen exporteren",
+            BackgroundColor = Color.FromArgb("#155E75"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var importStyleLibraryButton = new Button
+        {
+            Text = _english ? "Import style library" : "Stijlenbibliotheek importeren",
+            BackgroundColor = Color.FromArgb("#365314"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -685,6 +699,8 @@ public partial class MainPage : ContentPage
                         duplicateStyleButton,
                         exportStyleButton,
                         importStyleButton,
+                        exportStyleLibraryButton,
+                        importStyleLibraryButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -898,6 +914,97 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 await DisplayAlertAsync(_english ? "Style export failed" : "Stijl exporteren mislukt", ex.Message, "OK");
+            }
+        };
+        exportStyleLibraryButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var styles = await styleStore.LoadAsync();
+                if (styles.Count == 0)
+                {
+                    await DisplayAlertAsync(_english ? "No saved styles" : "Geen opgeslagen stijlen",
+                        _english ? "Save at least one style before exporting the library." : "Sla eerst minstens één stijl op om de bibliotheek te exporteren.", "OK");
+                    return;
+                }
+
+                var exportFolder = Path.Combine(FileSystem.AppDataDirectory, "StyleExports");
+                Directory.CreateDirectory(exportFolder);
+                var path = Path.Combine(exportFolder, "CreatorNexus-style-library.json");
+                await File.WriteAllTextAsync(path, JsonSerializer.Serialize(styles, new JsonSerializerOptions { WriteIndented = true }));
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = _english ? "Share CreatorNexus style library" : "CreatorNexus-stijlenbibliotheek delen",
+                    File = new ShareFile(path)
+                });
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Library export failed" : "Bibliotheek exporteren mislukt", ex.Message, "OK");
+            }
+        };
+        importStyleLibraryButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var file = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = _english ? "Choose a CreatorNexus style library JSON file" : "Kies een JSON-bestand met CreatorNexus-stijlen",
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        [DevicePlatform.Android] = new[] { "application/json", "text/json" },
+                        [DevicePlatform.WinUI] = new[] { ".json" },
+                        [DevicePlatform.iOS] = new[] { "public.json" },
+                        [DevicePlatform.MacCatalyst] = new[] { "public.json" }
+                    })
+                });
+                if (file is null) return;
+                await using var stream = await file.OpenReadAsync();
+                var imported = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(stream);
+                if (imported is null || imported.Count == 0 || imported.Any(x => x is null || !x.IsValid()))
+                {
+                    await DisplayAlertAsync(
+                        _english ? "Invalid style library" : "Ongeldige stijlenbibliotheek",
+                        _english ? "The file is empty or contains invalid styles. Nothing was imported." : "Het bestand is leeg of bevat ongeldige stijlen. Er is niets geïmporteerd.",
+                        "OK");
+                    return;
+                }
+
+                var duplicateNames = imported.GroupBy(x => x.Name.Trim(), StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+                if (duplicateNames is not null)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "Duplicate names in file" : "Dubbele namen in bestand",
+                        _english ? $"The file contains more than one style named “{duplicateNames.Key}”. Nothing was imported." : $"Het bestand bevat meerdere stijlen met de naam “{duplicateNames.Key}”. Er is niets geïmporteerd.",
+                        "OK");
+                    return;
+                }
+
+                var existing = await styleStore.LoadAsync();
+                var collisions = imported.Where(x => existing.Any(y => string.Equals(y.Name, x.Name.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
+                if (collisions.Count > 0)
+                {
+                    var confirmed = await DisplayAlertAsync(
+                        _english ? "Replace matching styles?" : "Bestaande stijlen vervangen?",
+                        _english
+                            ? $"{collisions.Count} style name(s) already exist. Replace matching styles and add the rest?"
+                            : $"{collisions.Count} stijl(en) bestaan al. Bestaande stijlen vervangen en de rest toevoegen?",
+                        _english ? "Replace and import" : "Vervangen en importeren",
+                        _english ? "Cancel" : "Annuleren");
+                    if (!confirmed) return;
+                }
+
+                foreach (var style in imported)
+                    await styleStore.SaveAsync(style with { Name = style.Name.Trim() });
+
+                await DisplayAlertAsync(
+                    _english ? "Style library imported" : "Stijlenbibliotheek geïmporteerd",
+                    _english ? $"{imported.Count} style(s) imported successfully." : $"{imported.Count} stijl(en) succesvol geïmporteerd.",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Library import failed" : "Bibliotheek importeren mislukt", ex.Message, "OK");
             }
         };
         importStyleButton.Clicked += async (_, _) =>
