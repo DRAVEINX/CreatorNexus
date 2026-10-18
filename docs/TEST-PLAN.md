@@ -25,3 +25,11 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Search project title, channel, notes and tags without case sensitivity.
 - Search production checklist, script, media references, and thumbnail headline/subtitle.
 - Confirm empty search still returns all projects and searches do not modify saved data.
+
+
+## Storage integrity and recovery checks
+- Saving writes a complete temporary JSON snapshot before replacing the primary project file.
+- When a primary file already exists, preserve its previous contents as a `.bak` file before replacement.
+- If saved JSON is malformed, surface a clear data-integrity error rather than treating the library as empty.
+- Confirm a failed save leaves the existing primary file intact and temporary files are cleaned up.
+- Verify backup retention and recovery behavior on Android and Windows before release.

@@ -69,3 +69,9 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Thumbnail-editor enhancement: independently configurable text-panel border thickness (Thin, Medium, Thick), persisted per project and reflected in the live preview plus PNG/JPG exports.
 
 - Thumbnail-editor enhancement: independently configurable text-panel border opacity (Subtle, Medium, Strong), saved per project and applied in live preview plus PNG/JPG exports.
+
+
+## Reliability follow-up
+- Project storage now preserves the previous valid file as an automatic `.bak` before replacing the primary JSON file.
+- Malformed project JSON raises a data-integrity error instead of silently returning an empty project list.
+- Full user-facing backup/restore, backup validation and migration tests remain planned work.

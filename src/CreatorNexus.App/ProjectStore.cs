@@ -62,15 +62,36 @@ public sealed class ProjectStore
             return await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options)
                 ?? new List<CreatorProject>();
         }
-        catch (JsonException) { return Array.Empty<CreatorProject>(); }
+        catch (JsonException ex)
+        {
+            throw new InvalidDataException(
+                $"The saved CreatorNexus project file is invalid. The original file was preserved at '{_filePath}'.", ex);
+        }
     }
 
     private async Task SaveCoreAsync(IReadOnlyList<CreatorProject> projects)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
         var temp = _filePath + ".tmp";
-        await using (var stream = File.Create(temp))
-            await JsonSerializer.SerializeAsync(stream, projects, Options);
-        File.Move(temp, _filePath, true);
+        var backup = _filePath + ".bak";
+        try
+        {
+            await using (var stream = File.Create(temp))
+            {
+                await JsonSerializer.SerializeAsync(stream, projects, Options);
+                await stream.FlushAsync();
+            }
+
+            // Preserve the last known file before replacing it with the new snapshot.
+            if (File.Exists(_filePath))
+                File.Copy(_filePath, backup, true);
+
+            File.Move(temp, _filePath, true);
+        }
+        finally
+        {
+            if (File.Exists(temp))
+                File.Delete(temp);
+        }
     }
 }
