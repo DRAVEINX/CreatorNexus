@@ -918,9 +918,14 @@ public partial class MainPage : ContentPage
                 if (file is null) return;
                 await using var stream = await file.OpenReadAsync();
                 var style = await JsonSerializer.DeserializeAsync<ThumbnailStylePreset>(stream);
-                if (style is null || string.IsNullOrWhiteSpace(style.Name))
+                if (style is null || !style.IsValid())
                 {
-                    await DisplayAlertAsync(_english ? "Invalid style file" : "Ongeldig stijlbestand", _english ? "The file does not contain a named CreatorNexus style." : "Het bestand bevat geen benoemde CreatorNexus-stijl.", "OK");
+                    await DisplayAlertAsync(
+                        _english ? "Invalid style file" : "Ongeldig stijlbestand",
+                        _english
+                            ? "The file is missing a valid name or contains unsupported design options. Nothing was imported."
+                            : "Het bestand mist een geldige naam of bevat niet-ondersteunde ontwerpopties. Er is niets geïmporteerd.",
+                        "OK");
                     return;
                 }
 
