@@ -72,6 +72,12 @@ public sealed class ProjectStore
                     await JsonSerializer.SerializeAsync(stream, projects, Options);
                     await stream.FlushAsync();
                 }
+
+                // Never create an export that the restore flow would refuse to import.
+                var sizeError = ProjectBackupRules.ValidateBackupSize(new FileInfo(tempPath).Length);
+                if (sizeError is not null)
+                    throw new InvalidDataException(sizeError);
+
                 File.Move(tempPath, fullPath, true);
             }
             finally
