@@ -44,3 +44,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Native file picker to import media into app-private CreatorNexus storage and save file references per project. Media-library deletion and broader media preview remain follow-up work.
 
 - Thumbnail-editor enhancement: persisted small/medium/large headline and subtitle sizes, plus centered, top-banner and bottom-banner layouts, applied to preview and PNG/JPG export.
+
+- Thumbnail-editor enhancement: selectable white/yellow/black text color, persisted per project and reflected in preview plus PNG/JPG exports.
