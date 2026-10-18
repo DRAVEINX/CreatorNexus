@@ -1130,6 +1130,23 @@ public partial class MainPage : ContentPage
             BackgroundColor = Color.FromArgb("#262638"),
             VerticalOptions = LayoutOptions.Fill
         };
+        var countLabel = new Label
+        {
+            TextColor = Color.FromArgb("#A5B4FC"),
+            FontSize = 12,
+            SemanticProperties.Description = _english ? "Word and character count" : "Aantal woorden en tekens"
+        };
+        void UpdateTextCount()
+        {
+            var value = editor.Text ?? string.Empty;
+            var words = value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+            countLabel.Text = _english
+                ? $"{words} words • {value.Length} characters"
+                : $"{words} woorden • {value.Length} tekens";
+        }
+        editor.TextChanged += (_, _) => UpdateTextCount();
+        UpdateTextCount();
+
         var completion = new TaskCompletionSource<string?>();
         var saveButton = new Button
         {
@@ -1152,12 +1169,13 @@ public partial class MainPage : ContentPage
             Padding = new Thickness(18),
             Content = new Grid
             {
-                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto) },
+                RowDefinitions = { new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto) },
                 RowSpacing = 14,
                 Children =
                 {
                     new Label { Text = title, FontSize = 22, FontAttributes = FontAttributes.Bold, TextColor = Colors.White },
                     editor,
+                    countLabel,
                     new Grid
                     {
                         ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Star) },
@@ -1169,7 +1187,8 @@ public partial class MainPage : ContentPage
         };
         var root = (Grid)page.Content;
         Grid.SetRow(editor, 1);
-        Grid.SetRow((View)root.Children[2], 2);
+        Grid.SetRow(countLabel, 2);
+        Grid.SetRow((View)root.Children[3], 3);
         Grid.SetColumn(cancelButton, 0);
         Grid.SetColumn(saveButton, 1);
 
