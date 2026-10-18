@@ -1493,6 +1493,46 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
+    private async void OnDuplicateProjectClicked(object sender, EventArgs e)
+    {
+        if ((sender as Button)?.CommandParameter is not Guid id)
+            return;
+
+        var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
+        if (project is null)
+            return;
+
+        var suffix = _english ? " (copy)" : " (kopie)";
+        var title = project.Title;
+        if (title.Length + suffix.Length > 120)
+            title = title[..(120 - suffix.Length)];
+        var now = DateTimeOffset.UtcNow;
+        var duplicate = project with
+        {
+            Id = Guid.NewGuid(),
+            Title = title + suffix,
+            Status = ProjectStatus.Idea,
+            IsArchived = false,
+            IsFavorite = false,
+            ScheduledFor = null,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        await _store.AddAsync(duplicate);
+        _showArchived = false;
+        _showFavoritesOnly = false;
+        _showScheduleOnly = false;
+        ProjectSearchBar.Text = string.Empty;
+        await LoadProjectsAsync();
+        await DisplayAlertAsync(
+            _english ? "Project duplicated" : "Project gekopieerd",
+            _english
+                ? $"A new draft “{duplicate.Title}” was created. Its script, checklist, notes and design settings were copied."
+                : $"Een nieuw concept “{duplicate.Title}” is gemaakt. Script, checklist, notities en ontwerpinstellingen zijn meegekopieerd.",
+            _english ? "OK" : "Oké");
+    }
+
     private async void OnDeleteProjectClicked(object sender, EventArgs e)
     {
         if ((sender as Button)?.CommandParameter is not Guid id)

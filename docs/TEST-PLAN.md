@@ -56,6 +56,12 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - The app and automated tests share a single parse-and-validation gate; restore must not call the save/replacement path unless the gate returns a validated project list.
 
 
+## Project duplication
+- Duplicate an active or archived project and verify a new unique ID is generated.
+- Confirm script, checklist, notes, tags, media references and thumbnail settings are copied.
+- Confirm the duplicate starts as a new draft, is active and unfavorited, and has no scheduled date.
+- Verify a 120-character source title is truncated safely to leave room for the localized copy suffix.
+
 ## Local recovery from the .bak snapshot
 - Create at least two projects so a save produces a previous local `.bak` snapshot.
 - Use **Herstel lokale back-up** and confirm; verify the project list is restored and refreshed.
