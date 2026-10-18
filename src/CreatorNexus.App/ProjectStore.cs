@@ -53,7 +53,7 @@ public sealed class ProjectStore
         finally { _gate.Release(); }
     }
 
-    /// <summary>Exports the current project collection as a portable JSON backup.</summary>
+    /// <summary>Exports the current project collection as a versioned portable JSON backup.</summary>
     public async Task ExportBackupAsync(string destinationPath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationPath);
@@ -67,11 +67,7 @@ public sealed class ProjectStore
             var tempPath = fullPath + ".tmp";
             try
             {
-                await using (var stream = File.Create(tempPath))
-                {
-                    await JsonSerializer.SerializeAsync(stream, projects, Options);
-                    await stream.FlushAsync();
-                }
+                await File.WriteAllTextAsync(tempPath, ProjectBackupCodec.Serialize(projects), new System.Text.UTF8Encoding(false));
 
                 // Never create an export that the restore flow would refuse to import.
                 var sizeError = ProjectBackupRules.ValidateBackupSize(new FileInfo(tempPath).Length);
@@ -88,7 +84,7 @@ public sealed class ProjectStore
         finally { _gate.Release(); }
     }
 
-    /// <summary>Validates a JSON backup before replacing the current project collection.</summary>
+    /// <summary>Validates a backup before replacing the current project collection.</summary>
     public async Task RestoreBackupAsync(string sourcePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
@@ -102,13 +98,18 @@ public sealed class ProjectStore
             List<CreatorProject> projects;
             try
             {
-                await using var stream = File.OpenRead(fullPath);
-                var sizeError = ProjectBackupRules.ValidateBackupSize(stream.Length);
-                if (sizeError is not null)
-                    throw new InvalidDataException($"{sizeError} Existing projects were not changed.");
+                string json;
+                await using (var stream = File.OpenRead(fullPath))
+                {
+                    var sizeError = ProjectBackupRules.ValidateBackupSize(stream.Length);
+                    if (sizeError is not null)
+                        throw new InvalidDataException($"{sizeError} Existing projects were not changed.");
 
-                projects = await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options)
-                    ?? throw new InvalidDataException("The backup does not contain a project collection.");
+                    using var reader = new StreamReader(stream);
+                    json = await reader.ReadToEndAsync();
+                }
+
+                projects = ProjectBackupCodec.Deserialize(json);
             }
             catch (JsonException ex)
             {

@@ -72,6 +72,9 @@ These features still require successful CI runs and hands-on Android phone, Andr
 
 
 ## Reliability follow-up
+- Portable backup exports now use a versioned manifest with a UTC creation timestamp and SHA-256 payload checksum.
+- Restore verifies the manifest version and checksum before project validation or replacement; legacy bare JSON-array backups remain importable.
+- The checksum detects corruption or changes but is not a digital signature and does not prove who created the backup.
 - Project storage now preserves the previous valid file as an automatic `.bak` before replacing the primary JSON file.
 - Malformed project JSON raises a data-integrity error instead of silently returning an empty project list.
 - Full user-facing backup/restore, backup validation and migration tests remain planned work.
