@@ -1,5 +1,6 @@
 using SkiaSharp;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using CreatorNexus.Core;
 
 namespace CreatorNexus.App;
@@ -598,6 +599,20 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var exportStyleButton = new Button
+        {
+            Text = _english ? "Export saved style" : "Opgeslagen stijl exporteren",
+            BackgroundColor = Color.FromArgb("#155E75"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var importStyleButton = new Button
+        {
+            Text = _english ? "Import style file" : "Stijlbestand importeren",
+            BackgroundColor = Color.FromArgb("#365314"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -668,6 +683,8 @@ public partial class MainPage : ContentPage
                         loadStyleButton,
                         deleteStyleButton,
                         duplicateStyleButton,
+                        exportStyleButton,
+                        importStyleButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -846,6 +863,86 @@ public partial class MainPage : ContentPage
             catch (Exception ex)
             {
                 await DisplayAlertAsync(_english ? "Could not duplicate style" : "Stijl kopiëren mislukt", ex.Message, "OK");
+            }
+        };
+        exportStyleButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var styles = await styleStore.LoadAsync();
+                if (styles.Count == 0)
+                {
+                    await DisplayAlertAsync(_english ? "No saved styles" : "Geen opgeslagen stijlen", _english ? "Save a style before exporting." : "Sla eerst een stijl op voordat je exporteert.", "OK");
+                    return;
+                }
+
+                var selectedName = await DisplayActionSheetAsync(
+                    _english ? "Choose a style to export" : "Kies een stijl om te exporteren",
+                    _english ? "Cancel" : "Annuleren", null, styles.Select(x => x.Name).ToArray());
+                if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren")) return;
+                var style = styles.FirstOrDefault(x => string.Equals(x.Name, selectedName, StringComparison.OrdinalIgnoreCase));
+                if (style is null) return;
+
+                var exportFolder = Path.Combine(FileSystem.AppDataDirectory, "StyleExports");
+                Directory.CreateDirectory(exportFolder);
+                var safeName = string.Concat(style.Name.Select(ch => Path.GetInvalidFileNameChars().Contains(ch) ? '_' : ch)).Trim();
+                if (string.IsNullOrWhiteSpace(safeName)) safeName = "thumbnail-style";
+                var path = Path.Combine(exportFolder, safeName + ".creatornexus-style.json");
+                await File.WriteAllTextAsync(path, JsonSerializer.Serialize(style, new JsonSerializerOptions { WriteIndented = true }));
+                await Share.Default.RequestAsync(new ShareFileRequest
+                {
+                    Title = _english ? "Share CreatorNexus style" : "CreatorNexus-stijl delen",
+                    File = new ShareFile(path)
+                });
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Style export failed" : "Stijl exporteren mislukt", ex.Message, "OK");
+            }
+        };
+        importStyleButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var file = await FilePicker.Default.PickAsync(new PickOptions
+                {
+                    PickerTitle = _english ? "Choose a CreatorNexus style JSON file" : "Kies een CreatorNexus-stijlbestand (JSON)",
+                    FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                    {
+                        [DevicePlatform.Android] = new[] { "application/json", "text/json" },
+                        [DevicePlatform.WinUI] = new[] { ".json" },
+                        [DevicePlatform.iOS] = new[] { "public.json" },
+                        [DevicePlatform.MacCatalyst] = new[] { "public.json" }
+                    })
+                });
+                if (file is null) return;
+                await using var stream = await file.OpenReadAsync();
+                var style = await JsonSerializer.DeserializeAsync<ThumbnailStylePreset>(stream);
+                if (style is null || string.IsNullOrWhiteSpace(style.Name))
+                {
+                    await DisplayAlertAsync(_english ? "Invalid style file" : "Ongeldig stijlbestand", _english ? "The file does not contain a named CreatorNexus style." : "Het bestand bevat geen benoemde CreatorNexus-stijl.", "OK");
+                    return;
+                }
+
+                var name = style.Name.Trim();
+                var overwrite = (await styleStore.LoadAsync()).Any(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (overwrite)
+                {
+                    var confirmed = await DisplayAlertAsync(
+                        _english ? "Replace saved style?" : "Opgeslagen stijl vervangen?",
+                        _english ? $"A style named “{name}” already exists. Replace it?" : $"Er bestaat al een stijl met de naam “{name}”. Wil je deze vervangen?",
+                        _english ? "Replace" : "Vervangen",
+                        _english ? "Cancel" : "Annuleren");
+                    if (!confirmed) return;
+                }
+
+                await styleStore.SaveAsync(style with { Name = name });
+                await DisplayAlertAsync(_english ? "Style imported" : "Stijl geïmporteerd",
+                    _english ? $"“{name}” is now available in your saved styles." : $"“{name}” staat nu bij je opgeslagen stijlen.", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Style import failed" : "Stijl importeren mislukt", ex.Message, "OK");
             }
         };
         loadStyleButton.Clicked += async (_, _) =>
