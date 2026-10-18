@@ -48,3 +48,4 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Thumbnail-editor enhancement: selectable white/yellow/black text color, persisted per project and reflected in preview plus PNG/JPG exports.
 
 - Thumbnail-editor enhancement: selectable no/black/white text outline, saved per project and applied to preview and PNG/JPG exports.
+- Thumbnail-editor enhancement: optional text background panel with None, Dark, Light and Theme styles; saved per project and applied to live preview and PNG/JPG exports.
