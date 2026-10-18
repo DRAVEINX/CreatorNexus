@@ -315,6 +315,29 @@ public partial class MainPage : ContentPage
                 Children = { previewHeadline, previewSubtitle }
             }
         };
+        var safeAreaGuide = new Border
+        {
+            Margin = new Thickness(20),
+            Stroke = Color.FromArgb("#FFFF00"),
+            StrokeThickness = 1,
+            BackgroundColor = Colors.Transparent,
+            InputTransparent = true,
+            IsVisible = false
+        };
+        var safeAreaButton = new Button
+        {
+            Text = _english ? "Show safe-area guide" : "Veilige marge tonen",
+            BackgroundColor = Color.FromArgb("#59451D"),
+            TextColor = Colors.White,
+            CornerRadius = 10
+        };
+        safeAreaButton.Clicked += (_, _) =>
+        {
+            safeAreaGuide.IsVisible = !safeAreaGuide.IsVisible;
+            safeAreaButton.Text = safeAreaGuide.IsVisible
+                ? (_english ? "Hide safe-area guide" : "Veilige marge verbergen")
+                : (_english ? "Show safe-area guide" : "Veilige marge tonen");
+        };
         var preview = new Border
         {
             HeightRequest = 190,
@@ -327,7 +350,8 @@ public partial class MainPage : ContentPage
                 Children =
                 {
                     previewImage,
-                    previewTextPanel
+                    previewTextPanel,
+                    safeAreaGuide
                 }
             }
         };
@@ -534,6 +558,7 @@ public partial class MainPage : ContentPage
                     {
                         new Label { Text = _english ? "Live thumbnail preview" : "Live thumbnailvoorbeeld", FontSize = 22, FontAttributes = FontAttributes.Bold, TextColor = Colors.White },
                         preview,
+                        safeAreaButton,
                         new Label { Text = _english ? "Headline" : "Koptekst", TextColor = Colors.White },
                         titleEntry,
                         new Label { Text = _english ? "Subtitle" : "Ondertitel", TextColor = Colors.White },
