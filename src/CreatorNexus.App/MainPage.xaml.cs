@@ -812,11 +812,27 @@ public partial class MainPage : ContentPage
                     return;
                 }
 
+                var searchText = await DisplayPromptAsync(
+                    _english ? "Find a style to delete" : "Zoek een stijl om te verwijderen",
+                    _english ? "Enter part of the style name, or leave blank to show all styles." : "Typ een deel van de stijlnaam of laat leeg om alle stijlen te tonen.",
+                    _english ? "Search" : "Zoeken",
+                    _english ? "Show all" : "Alles tonen",
+                    maxLength: 50);
+                if (searchText is null) return;
+                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
+                    ? styles.ToList()
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                if (matchingStyles.Count == 0)
+                {
+                    await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
+                        _english ? "Try another name or search term." : "Probeer een andere naam of zoekterm.", "OK");
+                    return;
+                }
                 var selectedName = await DisplayActionSheetAsync(
                     _english ? "Choose a style to delete" : "Kies een stijl om te verwijderen",
                     _english ? "Cancel" : "Annuleren",
                     null,
-                    styles.Select(x => x.Name).ToArray());
+                    matchingStyles.Select(x => x.Name).ToArray());
                 if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren"))
                     return;
 
@@ -852,11 +868,27 @@ public partial class MainPage : ContentPage
                     return;
                 }
 
+                var searchText = await DisplayPromptAsync(
+                    _english ? "Find a style to duplicate" : "Zoek een stijl om te kopiëren",
+                    _english ? "Enter part of the style name, or leave blank to show all styles." : "Typ een deel van de stijlnaam of laat leeg om alle stijlen te tonen.",
+                    _english ? "Search" : "Zoeken",
+                    _english ? "Show all" : "Alles tonen",
+                    maxLength: 50);
+                if (searchText is null) return;
+                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
+                    ? styles.ToList()
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                if (matchingStyles.Count == 0)
+                {
+                    await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
+                        _english ? "Try another name or search term." : "Probeer een andere naam of zoekterm.", "OK");
+                    return;
+                }
                 var selectedName = await DisplayActionSheetAsync(
                     _english ? "Choose a style to duplicate" : "Kies een stijl om te kopiëren",
                     _english ? "Cancel" : "Annuleren",
                     null,
-                    styles.Select(x => x.Name).ToArray());
+                    matchingStyles.Select(x => x.Name).ToArray());
                 if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren"))
                     return;
 
@@ -892,9 +924,25 @@ public partial class MainPage : ContentPage
                     return;
                 }
 
+                var searchText = await DisplayPromptAsync(
+                    _english ? "Find a style to export" : "Zoek een stijl om te exporteren",
+                    _english ? "Enter part of the style name, or leave blank to show all styles." : "Typ een deel van de stijlnaam of laat leeg om alle stijlen te tonen.",
+                    _english ? "Search" : "Zoeken",
+                    _english ? "Show all" : "Alles tonen",
+                    maxLength: 50);
+                if (searchText is null) return;
+                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
+                    ? styles.ToList()
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                if (matchingStyles.Count == 0)
+                {
+                    await DisplayAlertAsync(_english ? "No matching styles" : "Geen stijlen gevonden",
+                        _english ? "Try another name or search term." : "Probeer een andere naam of zoekterm.", "OK");
+                    return;
+                }
                 var selectedName = await DisplayActionSheetAsync(
                     _english ? "Choose a style to export" : "Kies een stijl om te exporteren",
-                    _english ? "Cancel" : "Annuleren", null, styles.Select(x => x.Name).ToArray());
+                    _english ? "Cancel" : "Annuleren", null, matchingStyles.Select(x => x.Name).ToArray());
                 if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren")) return;
                 var style = styles.FirstOrDefault(x => string.Equals(x.Name, selectedName, StringComparison.OrdinalIgnoreCase));
                 if (style is null) return;
