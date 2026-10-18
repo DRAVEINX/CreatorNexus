@@ -1335,6 +1335,87 @@ public partial class MainPage : ContentPage
         RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
     }
 
+    private async void OnExportBackupClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var backupPath = Path.Combine(FileSystem.CacheDirectory,
+                $"CreatorNexus-backup-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+            await _store.ExportBackupAsync(backupPath);
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = _english ? "Save or share CreatorNexus backup" : "CreatorNexus-back-up opslaan of delen",
+                File = new ShareFile(backupPath, "application/json")
+            });
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                _english ? "Backup failed" : "Back-up mislukt",
+                _english ? $"The backup could not be prepared: {ex.Message}" : $"De back-up kon niet worden klaargezet: {ex.Message}",
+                _english ? "OK" : "Oké");
+        }
+    }
+
+    private async void OnRestoreBackupClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var picked = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = _english ? "Choose a CreatorNexus JSON backup" : "Kies een CreatorNexus JSON-back-up",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    [DevicePlatform.Android] = new[] { "application/json", "text/json" },
+                    [DevicePlatform.WinUI] = new[] { ".json" }
+                })
+            });
+            if (picked is null)
+                return;
+
+            var confirmed = await DisplayAlertAsync(
+                _english ? "Replace current projects?" : "Huidige projecten vervangen?",
+                _english
+                    ? "Restoring replaces the current project list with the selected backup. Continue? The previous saved file is retained as a local backup."
+                    : "Terugzetten vervangt de huidige projectenlijst door de gekozen back-up. Doorgaan? Het vorige opgeslagen bestand blijft als lokale back-up bewaard.",
+                _english ? "Restore" : "Terugzetten",
+                _english ? "Cancel" : "Annuleren");
+            if (!confirmed)
+                return;
+
+            var temporaryPath = Path.Combine(FileSystem.CacheDirectory, $"CreatorNexus-restore-{Guid.NewGuid():N}.json");
+            try
+            {
+                await using (var source = await picked.OpenReadAsync())
+                await using (var destination = File.Create(temporaryPath))
+                    await source.CopyToAsync(destination);
+
+                await _store.RestoreBackupAsync(temporaryPath);
+                _showArchived = false;
+                _showFavoritesOnly = false;
+                _showScheduleOnly = false;
+                ProjectSearchBar.Text = string.Empty;
+                await LoadProjectsAsync();
+                await DisplayAlertAsync(
+                    _english ? "Backup restored" : "Back-up teruggezet",
+                    _english ? "The projects from the backup have been restored." : "De projecten uit de back-up zijn teruggezet.",
+                    _english ? "OK" : "Oké");
+            }
+            finally
+            {
+                if (File.Exists(temporaryPath))
+                    File.Delete(temporaryPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                _english ? "Restore failed" : "Terugzetten mislukt",
+                _english ? $"The backup could not be restored. Details: {ex.Message}" : $"De back-up kon niet worden teruggezet. Details: {ex.Message}",
+                _english ? "OK" : "Oké");
+        }
+    }
+
     private void OnLanguageClicked(object sender, EventArgs e)
     {
         _english = !_english;
@@ -1350,6 +1431,8 @@ public partial class MainPage : ContentPage
             ? "Capture ideas, organize content and keep your next step in sight."
             : "Bewaar ideeën, organiseer content en houd je volgende stap in zicht.";
         NewProjectEntry.Placeholder = _english ? "Name your new project…" : "Naam van je nieuwe project…";
+        ExportBackupButton.Text = _english ? "Create backup" : "Back-up maken";
+        RestoreBackupButton.Text = _english ? "Restore backup" : "Back-up terugzetten";
         AddButton.Text = _english ? "+ New" : "+ Nieuw";
         TemplateButton.Text = _english ? "Template" : "Sjabloon";
         ProjectsHeading.Text = _showScheduleOnly

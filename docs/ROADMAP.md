@@ -77,3 +77,9 @@ These features still require successful CI runs and hands-on Android phone, Andr
 - Full user-facing backup/restore, backup validation and migration tests remain planned work.
 
 - Added storage-layer APIs to export a portable JSON backup and restore a validated backup while rejecting malformed data and duplicate/empty project IDs. User-facing buttons/file-picker integration and cross-platform manual verification remain follow-up work.
+
+
+## Backup and restore UI
+- The main page exposes backup export through the native share sheet and restore through the platform file picker.
+- Restore asks for confirmation before replacing the current project list; invalid backups should be rejected by the storage layer.
+- Manual Android and Windows device testing remains required before release readiness.

@@ -27,6 +27,11 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button x:Name="ExportBackupButton" Text="Back-up maken" Clicked="OnExportBackupClicked" BackgroundColor="#30264A" TextColor="White" CornerRadius="12" />
+                    <Button x:Name="RestoreBackupButton" Grid.Column="1" Text="Back-up terugzetten" Clicked="OnRestoreBackupClicked" BackgroundColor="#262638" TextColor="White" CornerRadius="12" />
+                </Grid>
+
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
                     <Label x:Name="ProjectsHeading" Text="Jouw projecten" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                     <Label x:Name="ProjectCountLabel" Grid.Column="1" Text="0 projecten" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />

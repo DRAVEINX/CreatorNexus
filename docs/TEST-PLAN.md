@@ -28,6 +28,12 @@ Do not mark a release ready until automated tests and all applicable platform ch
 
 
 ## Storage integrity and recovery checks
+- Export a JSON backup from the app using the platform share sheet.
+- Restore a selected valid JSON backup from the app; verify the project list refreshes.
+- Cancel file selection and restore confirmation; verify existing projects remain unchanged.
+- Try malformed JSON and duplicate/empty project IDs; verify restore is rejected and existing projects remain unchanged.
+- Verify export and restore on a real Android device and a Windows installation, including cross-platform backup transfer.
+
 - Saving writes a complete temporary JSON snapshot before replacing the primary project file.
 - When a primary file already exists, preserve its previous contents as a `.bak` file before replacement.
 - If saved JSON is malformed, surface a clear data-integrity error rather than treating the library as empty.
