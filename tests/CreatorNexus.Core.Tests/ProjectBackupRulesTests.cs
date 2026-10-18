@@ -142,4 +142,77 @@ public class ProjectBackupRulesTests
         Assert.Contains("duplicate project IDs", error.Message);
         Assert.Contains("Existing projects were not changed", error.Message);
     }
+
+    [Fact]
+    public async Task RecoverAsyncRestoresValidatedBackupAndPreservesBackup()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "CreatorNexusRecoveryTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var primary = Path.Combine(directory, "creator-projects.json");
+        var backup = primary + ".bak";
+        try
+        {
+            await File.WriteAllTextAsync(primary, "corrupt primary");
+            var originalBackup = ProjectBackupCodec.Serialize(new[] { new CreatorProject { Title = "Recovered project" } });
+            await File.WriteAllTextAsync(backup, originalBackup);
+
+            await ProjectFileRecovery.RecoverAsync(primary, backup);
+
+            var restored = ProjectBackupRules.ReadAndValidateBackup(await File.ReadAllTextAsync(primary));
+            Assert.Single(restored);
+            Assert.Equal("Recovered project", restored[0].Title);
+            Assert.Equal(originalBackup, await File.ReadAllTextAsync(backup));
+            Assert.False(File.Exists(primary + ".recovery.tmp"));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public async Task RecoverAsyncRejectsInvalidBackupWithoutChangingPrimary()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "CreatorNexusRecoveryTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var primary = Path.Combine(directory, "creator-projects.json");
+        var backup = primary + ".bak";
+        try
+        {
+            const string originalPrimary = "keep this primary unchanged";
+            await File.WriteAllTextAsync(primary, originalPrimary);
+            await File.WriteAllTextAsync(backup, "{ invalid json");
+
+            await Assert.ThrowsAnyAsync<Exception>(() => ProjectFileRecovery.RecoverAsync(primary, backup));
+
+            Assert.Equal(originalPrimary, await File.ReadAllTextAsync(primary));
+            Assert.Equal("{ invalid json", await File.ReadAllTextAsync(backup));
+            Assert.False(File.Exists(primary + ".recovery.tmp"));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public async Task RecoverAsyncRejectsMissingBackupWithoutChangingPrimary()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "CreatorNexusRecoveryTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        var primary = Path.Combine(directory, "creator-projects.json");
+        try
+        {
+            const string originalPrimary = "keep this primary unchanged";
+            await File.WriteAllTextAsync(primary, originalPrimary);
+
+            await Assert.ThrowsAsync<FileNotFoundException>(() => ProjectFileRecovery.RecoverAsync(primary, primary + ".bak"));
+
+            Assert.Equal(originalPrimary, await File.ReadAllTextAsync(primary));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
 }
