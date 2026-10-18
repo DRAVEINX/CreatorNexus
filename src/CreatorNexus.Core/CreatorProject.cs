@@ -16,6 +16,7 @@ public sealed record CreatorProject
     public string ThumbnailSubtitle { get; init; } = string.Empty;
     public string ThumbnailTheme { get; init; } = "Purple";
     public string? ThumbnailImagePath { get; init; }
+    public string ThumbnailImageFit { get; init; } = "Cover";
     public string ThumbnailTextAlignment { get; init; } = "Center";
     public string ThumbnailTitleSize { get; init; } = "Medium";
     public string ThumbnailSubtitleSize { get; init; } = "Medium";

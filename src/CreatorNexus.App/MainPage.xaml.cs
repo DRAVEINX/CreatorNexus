@@ -240,6 +240,17 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             BackgroundColor = Color.FromArgb("#262638")
         };
+        var imageFitOptions = _english
+            ? new[] { "Fill frame (crop)", "Fit full image" }
+            : new[] { "Beeldvullend (uitsnijden)", "Hele afbeelding tonen" };
+        var imageFitPicker = new Picker
+        {
+            Title = _english ? "Image framing" : "Beeldkader",
+            ItemsSource = imageFitOptions,
+            SelectedIndex = project.ThumbnailImageFit == "Fit" ? 1 : 0,
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var layouts = new[] { "Center", "Bottom banner", "Top banner" };
         var layoutPicker = new Picker
         {
@@ -309,6 +320,7 @@ public partial class MainPage : ContentPage
         {
             previewHeadline.Text = string.IsNullOrWhiteSpace(titleEntry.Text) ? (_english ? "Your headline" : "Jouw koptekst") : titleEntry.Text;
             previewSubtitle.Text = subtitleEntry.Text ?? string.Empty;
+            previewImage.Aspect = imageFitPicker.SelectedIndex == 1 ? Aspect.AspectFit : Aspect.AspectFill;
             var textAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center";
             previewHeadline.HorizontalTextAlignment = textAlignment switch
             {
@@ -381,6 +393,7 @@ public partial class MainPage : ContentPage
                 _ => "#6D28D9"
             });
         }
+        imageFitPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         presetPicker.SelectedIndexChanged += (_, _) =>
         {
             var preset = presetPicker.SelectedItem?.ToString() ?? string.Empty;
@@ -522,6 +535,8 @@ public partial class MainPage : ContentPage
                         fontFamilyPicker,
                         new Label { Text = _english ? "Quick design preset" : "Snelontwerp kiezen", TextColor = Colors.White },
                         presetPicker,
+                        new Label { Text = _english ? "Image framing" : "Beeldkader", TextColor = Colors.White },
+                        imageFitPicker,
                         new Label { Text = _english ? "Layout" : "Indeling", TextColor = Colors.White },
                         layoutPicker,
                         new Label { Text = _english ? "Text color" : "Tekstkleur", TextColor = Colors.White },
@@ -564,7 +579,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium", panelPaddingPicker.SelectedItem?.ToString() ?? "Normal", panelCornersPicker.SelectedItem?.ToString() ?? "Rounded", panelBorderPicker.SelectedItem?.ToString() ?? "None", panelBorderColorPicker.SelectedItem?.ToString() ?? "White", panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium", panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong");
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium", panelPaddingPicker.SelectedItem?.ToString() ?? "Normal", panelCornersPicker.SelectedItem?.ToString() ?? "Rounded", panelBorderPicker.SelectedItem?.ToString() ?? "None", panelBorderColorPicker.SelectedItem?.ToString() ?? "White", panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium", panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong", false, imageFitPicker.SelectedIndex == 1 ? "Fit" : "Cover");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -585,7 +600,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium", panelPaddingPicker.SelectedItem?.ToString() ?? "Normal", panelCornersPicker.SelectedItem?.ToString() ?? "Rounded", panelBorderPicker.SelectedItem?.ToString() ?? "None", panelBorderColorPicker.SelectedItem?.ToString() ?? "White", panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium", panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong", true);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium", panelPaddingPicker.SelectedItem?.ToString() ?? "Normal", panelCornersPicker.SelectedItem?.ToString() ?? "Rounded", panelBorderPicker.SelectedItem?.ToString() ?? "None", panelBorderColorPicker.SelectedItem?.ToString() ?? "White", panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium", panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong", true, imageFitPicker.SelectedIndex == 1 ? "Fit" : "Cover");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
@@ -616,6 +631,7 @@ public partial class MainPage : ContentPage
             ThumbnailSubtitle = subtitleEntry.Text?.Trim() ?? string.Empty,
             ThumbnailTheme = picker.SelectedItem?.ToString() ?? "Purple",
             ThumbnailImagePath = selectedImagePath,
+            ThumbnailImageFit = imageFitPicker.SelectedIndex == 1 ? "Fit" : "Cover",
             ThumbnailTextAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center",
             ThumbnailTitleSize = titleSizePicker.SelectedItem?.ToString() ?? "Medium",
             ThumbnailSubtitleSize = subtitleSizePicker.SelectedItem?.ToString() ?? "Medium",
@@ -638,7 +654,7 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", string textPlacement = "Center", string outlineThickness = "Medium", string fontFamily = "Arial", string panelOpacity = "Medium", string panelPadding = "Normal", string panelCorners = "Rounded", string panelBorder = "None", string panelBorderColor = "White", string panelBorderThickness = "Medium", string panelBorderOpacity = "Strong", bool jpeg = false)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", string textPlacement = "Center", string outlineThickness = "Medium", string fontFamily = "Arial", string panelOpacity = "Medium", string panelPadding = "Normal", string panelCorners = "Rounded", string panelBorder = "None", string panelBorderColor = "White", string panelBorderThickness = "Medium", string panelBorderOpacity = "Strong", bool jpeg = false, string imageFit = "Cover")
     {
         var background = theme switch
         {
@@ -685,10 +701,22 @@ public partial class MainPage : ContentPage
                 {
                     var sourceRatio = (float)sourceBitmap.Width / sourceBitmap.Height;
                     var targetRatio = (float)width / height;
-                    SKRect sourceRect = sourceRatio > targetRatio
-                        ? new SKRect((sourceBitmap.Width - sourceBitmap.Height * targetRatio) / 2f, 0, (sourceBitmap.Width + sourceBitmap.Height * targetRatio) / 2f, sourceBitmap.Height)
-                        : new SKRect(0, (sourceBitmap.Height - sourceBitmap.Width / targetRatio) / 2f, sourceBitmap.Width, (sourceBitmap.Height + sourceBitmap.Width / targetRatio) / 2f);
-                    canvas.DrawBitmap(sourceBitmap, sourceRect, new SKRect(0, 0, width, height));
+                    if (imageFit == "Fit")
+                    {
+                        canvas.Clear(background);
+                        var drawWidth = sourceRatio > targetRatio ? width : height * sourceRatio;
+                        var drawHeight = sourceRatio > targetRatio ? width / sourceRatio : height;
+                        var left = (width - drawWidth) / 2f;
+                        var top = (height - drawHeight) / 2f;
+                        canvas.DrawBitmap(sourceBitmap, new SKRect(left, top, left + drawWidth, top + drawHeight));
+                    }
+                    else
+                    {
+                        SKRect sourceRect = sourceRatio > targetRatio
+                            ? new SKRect((sourceBitmap.Width - sourceBitmap.Height * targetRatio) / 2f, 0, (sourceBitmap.Width + sourceBitmap.Height * targetRatio) / 2f, sourceBitmap.Height)
+                            : new SKRect(0, (sourceBitmap.Height - sourceBitmap.Width / targetRatio) / 2f, sourceBitmap.Width, (sourceBitmap.Height + sourceBitmap.Width / targetRatio) / 2f);
+                        canvas.DrawBitmap(sourceBitmap, sourceRect, new SKRect(0, 0, width, height));
+                    }
                 }
                 else canvas.Clear(background);
             }
