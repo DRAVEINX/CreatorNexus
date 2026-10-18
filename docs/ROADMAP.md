@@ -81,5 +81,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 
 ## Backup and restore UI
 - The main page exposes backup export through the native share sheet and restore through the platform file picker.
-- Restore asks for confirmation before replacing the current project list; invalid backups should be rejected by the storage layer.
+- Restore asks for confirmation before replacing the current project list; invalid JSON, null project entries, invalid or duplicate IDs, invalid titles, and undefined status values are rejected by the storage layer.
 - Manual Android and Windows device testing remains required before release readiness.

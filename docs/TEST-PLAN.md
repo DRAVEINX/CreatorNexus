@@ -41,5 +41,5 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Verify backup retention and recovery behavior on Android and Windows before release.
 
 - Export the saved project collection to a portable JSON backup file.
-- Restore only after parsing and validating the selected backup; reject malformed JSON and duplicate/empty project IDs without replacing existing projects.
+- Restore only after parsing and validating the selected backup; reject malformed JSON, null project entries, duplicate/empty project IDs, blank or overlong titles, and undefined status values without replacing existing projects.
 - Verify export and restore manually on Android and Windows, including a backup made on one platform and restored on another.
