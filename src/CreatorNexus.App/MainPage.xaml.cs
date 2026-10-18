@@ -823,7 +823,8 @@ public partial class MainPage : ContentPage
         var script = await EditLongTextAsync(
             _english ? "Script studio" : "Scriptstudio",
             project.Script,
-            _english ? "Write your hook, scenes, dialogue and call to action…" : "Schrijf je opening, scènes, tekst en oproep tot actie…");
+            _english ? "Write your hook, scenes, dialogue and call to action…" : "Schrijf je opening, scènes, tekst en oproep tot actie…",
+            $"script-draft-{project.Id}");
         if (script is null) return;
         await _store.UpdateAsync(project with { Script = script.Trim(), UpdatedAt = DateTimeOffset.UtcNow });
         await LoadProjectsAsync();
@@ -1117,8 +1118,29 @@ public partial class MainPage : ContentPage
         await LoadProjectsAsync();
     }
 
-    private async Task<string?> EditLongTextAsync(string title, string initialValue, string placeholder)
+    private async Task<string?> EditLongTextAsync(string title, string initialValue, string placeholder, string? draftKey = null)
     {
+        if (!string.IsNullOrWhiteSpace(draftKey) && Preferences.ContainsKey(draftKey))
+        {
+            var recoveredDraft = Preferences.Get(draftKey, string.Empty);
+            if (!string.IsNullOrEmpty(recoveredDraft) && !string.Equals(recoveredDraft, initialValue, StringComparison.Ordinal))
+            {
+                var recover = await DisplayAlertAsync(
+                    title,
+                    _english ? "A recovered draft is available. Would you like to restore it?" : "Er is een hersteld concept beschikbaar. Wil je dit terugzetten?",
+                    _english ? "Restore" : "Herstellen",
+                    _english ? "Discard draft" : "Concept weggooien");
+                if (recover)
+                    initialValue = recoveredDraft;
+                else
+                    Preferences.Remove(draftKey);
+            }
+            else
+            {
+                Preferences.Remove(draftKey);
+            }
+        }
+
         var editor = new Editor
         {
             Text = initialValue,
@@ -1146,7 +1168,12 @@ public partial class MainPage : ContentPage
                 ? $"{words} words • {value.Length} characters"
                 : $"{words} woorden • {value.Length} tekens";
         }
-        editor.TextChanged += (_, _) => UpdateTextCount();
+        editor.TextChanged += (_, _) =>
+        {
+            UpdateTextCount();
+            if (!string.IsNullOrWhiteSpace(draftKey))
+                Preferences.Set(draftKey, editor.Text ?? string.Empty);
+        };
         UpdateTextCount();
 
         var completion = new TaskCompletionSource<string?>();
@@ -1196,6 +1223,8 @@ public partial class MainPage : ContentPage
 
         saveButton.Clicked += async (_, _) =>
         {
+            if (!string.IsNullOrWhiteSpace(draftKey))
+                Preferences.Remove(draftKey);
             await Navigation.PopModalAsync();
             completion.TrySetResult(editor.Text ?? string.Empty);
         };
