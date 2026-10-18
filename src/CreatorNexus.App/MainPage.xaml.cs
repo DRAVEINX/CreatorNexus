@@ -931,8 +931,8 @@ public partial class MainPage : ContentPage
             else
             {
                 details = _english
-                    ? $"Name: {GetMediaDisplayName(selectedLine)}\nStatus: Reference only or local file missing.\nLocation: {string.IsNullOrWhiteSpace(path) ? "No local path stored" : path}"
-                    : $"Naam: {GetMediaDisplayName(selectedLine)}\nStatus: Alleen verwijzing of lokaal bestand ontbreekt.\nLocatie: {string.IsNullOrWhiteSpace(path) ? "Geen lokaal pad opgeslagen" : path}";
+                    ? $"Name: {GetMediaDisplayName(selectedLine)}\nStatus: Reference only or local file missing.\nLocation: {(string.IsNullOrWhiteSpace(path) ? "No local path stored" : path)}"
+                    : $"Naam: {GetMediaDisplayName(selectedLine)}\nStatus: Alleen verwijzing of lokaal bestand ontbreekt.\nLocatie: {(string.IsNullOrWhiteSpace(path) ? "Geen lokaal pad opgeslagen" : path)}";
             }
 
             await DisplayAlertAsync(
