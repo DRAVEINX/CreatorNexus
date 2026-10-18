@@ -26,8 +26,8 @@ public sealed class ThumbnailStyleStore
     {
         ArgumentNullException.ThrowIfNull(preset);
         var name = preset.Name.Trim();
-        if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("A style name is required.", nameof(preset));
+        if (!preset.IsValid())
+            throw new ArgumentException("The thumbnail style contains a missing name or unsupported option.", nameof(preset));
 
         await _gate.WaitAsync();
         try
