@@ -1071,7 +1071,27 @@ public partial class MainPage : ContentPage
                     return;
                 }
 
-                var options = styles.Select(x => x.Name).ToArray();
+                var searchText = await DisplayPromptAsync(
+                    _english ? "Find a saved style" : "Zoek een opgeslagen stijl",
+                    _english ? "Enter part of a style name, or leave blank to show all styles." : "Typ een deel van de stijlnaam of laat leeg om alle stijlen te tonen.",
+                    _english ? "Search" : "Zoeken",
+                    _english ? "Show all" : "Alles tonen",
+                    maxLength: 50);
+                if (searchText is null) return;
+
+                var matchingStyles = string.IsNullOrWhiteSpace(searchText)
+                    ? styles
+                    : styles.Where(x => x.Name.Contains(searchText.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                if (matchingStyles.Count == 0)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "No matching styles" : "Geen stijlen gevonden",
+                        _english ? "Try another name or search term." : "Probeer een andere naam of zoekterm.",
+                        "OK");
+                    return;
+                }
+
+                var options = matchingStyles.Select(x => x.Name).ToArray();
                 var selectedName = await DisplayActionSheetAsync(
                     _english ? "Choose a saved style" : "Kies een opgeslagen stijl",
                     _english ? "Cancel" : "Annuleren",
