@@ -128,8 +128,17 @@ public sealed class ProjectStore
         try
         {
             await using var stream = File.OpenRead(_filePath);
-            return await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options)
-                ?? new List<CreatorProject>();
+            var projects = await JsonSerializer.DeserializeAsync<List<CreatorProject>>(stream, Options);
+            if (projects is null)
+                throw new InvalidDataException(
+                    $"The saved CreatorNexus project file contains no project collection. The original file was preserved at '{_filePath}'.");
+
+            var validationError = ProjectBackupRules.Validate(projects);
+            if (validationError is not null)
+                throw new InvalidDataException(
+                    $"The saved CreatorNexus project file failed validation: {validationError} The original file was preserved at '{_filePath}'.");
+
+            return projects;
         }
         catch (JsonException ex)
         {
