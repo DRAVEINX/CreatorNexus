@@ -230,6 +230,16 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             BackgroundColor = Color.FromArgb("#262638")
         };
+        var presetNames = _english
+            ? new[] { "Gaming impact", "Podcast", "Minimal", "Breaking news", "Cinematic" }
+            : new[] { "Gaming-impact", "Podcast", "Minimalistisch", "Breaking news", "Filmisch" };
+        var presetPicker = new Picker
+        {
+            Title = _english ? "Quick design preset" : "Snelontwerp kiezen",
+            ItemsSource = presetNames,
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var layouts = new[] { "Center", "Bottom banner", "Top banner" };
         var layoutPicker = new Picker
         {
@@ -371,6 +381,35 @@ public partial class MainPage : ContentPage
                 _ => "#6D28D9"
             });
         }
+        presetPicker.SelectedIndexChanged += (_, _) =>
+        {
+            var preset = presetPicker.SelectedItem?.ToString() ?? string.Empty;
+            var gaming = preset == (_english ? "Gaming impact" : "Gaming-impact");
+            var podcast = preset == "Podcast";
+            var minimal = preset == (_english ? "Minimal" : "Minimalistisch");
+            var news = preset == "Breaking news";
+            var cinematic = preset == (_english ? "Cinematic" : "Filmisch");
+
+            picker.SelectedItem = gaming ? "Purple" : podcast ? "Blue" : minimal ? "Green" : news ? "Orange" : "Purple";
+            alignmentPicker.SelectedItem = minimal ? "Left" : "Center";
+            titleSizePicker.SelectedItem = gaming || news ? "Large" : minimal ? "Medium" : "Large";
+            subtitleSizePicker.SelectedItem = minimal ? "Small" : "Medium";
+            fontFamilyPicker.SelectedItem = cinematic ? "Georgia" : gaming || news ? "Arial" : podcast ? "Georgia" : "Arial";
+            layoutPicker.SelectedItem = news || cinematic ? "Bottom banner" : minimal ? "Top banner" : "Center";
+            textColorPicker.SelectedItem = minimal ? "Black" : news ? "Yellow" : "White";
+            outlineColorPicker.SelectedItem = minimal ? "None" : "Black";
+            outlineThicknessPicker.SelectedItem = "Medium";
+            panelStylePicker.SelectedItem = minimal ? "Light" : podcast ? "Theme" : "Dark";
+            panelOpacityPicker.SelectedItem = gaming || news ? "Strong" : "Medium";
+            panelPaddingPicker.SelectedItem = minimal ? "Compact" : "Spacious";
+            panelCornersPicker.SelectedItem = minimal || news ? "Square" : "Rounded";
+            panelBorderPicker.SelectedItem = podcast ? "Subtle" : "None";
+            panelBorderThicknessPicker.SelectedItem = "Medium";
+            panelBorderOpacityPicker.SelectedItem = "Strong";
+            panelBorderColorPicker.SelectedItem = "Theme";
+            titlePlacementPicker.SelectedItem = news || cinematic ? "Bottom" : minimal ? "Top" : "Center";
+            RefreshPreview();
+        };
         titleEntry.TextChanged += (_, _) => RefreshPreview();
         subtitleEntry.TextChanged += (_, _) => RefreshPreview();
         picker.SelectedIndexChanged += (_, _) => RefreshPreview();
@@ -481,6 +520,8 @@ public partial class MainPage : ContentPage
                         subtitleSizePicker,
                         new Label { Text = _english ? "Font family" : "Lettertype", TextColor = Colors.White },
                         fontFamilyPicker,
+                        new Label { Text = _english ? "Quick design preset" : "Snelontwerp kiezen", TextColor = Colors.White },
+                        presetPicker,
                         new Label { Text = _english ? "Layout" : "Indeling", TextColor = Colors.White },
                         layoutPicker,
                         new Label { Text = _english ? "Text color" : "Tekstkleur", TextColor = Colors.White },
