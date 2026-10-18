@@ -150,6 +150,15 @@ public partial class MainPage : ContentPage
             BackgroundColor = Color.FromArgb("#262638")
         };
         var panelStyles = new[] { "None", "Dark", "Light", "Theme" };
+        var panelOpacities = new[] { "Subtle", "Medium", "Strong" };
+        var panelOpacityPicker = new Picker
+        {
+            Title = _english ? "Panel opacity" : "Doorzichtigheid achtergrond",
+            ItemsSource = panelOpacities,
+            SelectedItem = panelOpacities.Contains(project.ThumbnailTextPanelOpacity) ? project.ThumbnailTextPanelOpacity : "Medium",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var titlePlacements = new[] { "Top", "Center", "Bottom" };
         var titlePlacementPicker = new Picker
         {
@@ -281,11 +290,12 @@ public partial class MainPage : ContentPage
             };
             var panelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark";
             previewTextPanel.IsVisible = panelStyle != "None";
+            var panelAlpha = panelOpacityPicker.SelectedItem?.ToString() switch { "Subtle" => "66", "Strong" => "E6", _ => "B3" };
             previewTextPanel.BackgroundColor = panelStyle switch
             {
-                "Light" => Color.FromArgb("#DDE5F0"),
-                "Theme" => Color.FromArgb((picker.SelectedItem?.ToString() ?? "Purple") switch { "Blue" => "#B3155EAA", "Orange" => "#B3C2410C", "Green" => "#B3166534", _ => "#B36D28D9" }),
-                _ => Color.FromArgb("#B30C0C18")
+                "Light" => Color.FromArgb("#"+panelAlpha+"E5EAF5"),
+                "Theme" => Color.FromArgb("#"+panelAlpha+(picker.SelectedItem?.ToString() ?? "Purple") switch { "Blue" => "155EAA", "Orange" => "C2410C", "Green" => "166534", _ => "6D28D9" }),
+                _ => Color.FromArgb("#"+panelAlpha+"0C0C18")
             };
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             preview.BackgroundColor = Color.FromArgb(theme switch
@@ -308,6 +318,7 @@ public partial class MainPage : ContentPage
         outlineColorPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         outlineThicknessPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         panelStylePicker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        panelOpacityPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         titlePlacementPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
@@ -409,6 +420,8 @@ public partial class MainPage : ContentPage
                         outlineThicknessPicker,
                         new Label { Text = _english ? "Text background panel" : "Achtergrond achter tekst", TextColor = Colors.White },
                         panelStylePicker,
+                        new Label { Text = _english ? "Panel opacity" : "Doorzichtigheid achtergrond", TextColor = Colors.White },
+                        panelOpacityPicker,
                         new Label { Text = _english ? "Text placement" : "Tekstpositie", TextColor = Colors.White },
                         titlePlacementPicker,
                         chooseImageButton,
@@ -431,7 +444,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial");
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -452,7 +465,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", true);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium", fontFamilyPicker.SelectedItem?.ToString() ?? "Arial", panelOpacityPicker.SelectedItem?.ToString() ?? "Medium", true);
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
@@ -492,13 +505,14 @@ public partial class MainPage : ContentPage
             ThumbnailTextOutlineColor = outlineColorPicker.SelectedItem?.ToString() ?? "Black",
             ThumbnailTextOutlineThickness = outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium",
             ThumbnailTextPanelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark",
+            ThumbnailTextPanelOpacity = panelOpacityPicker.SelectedItem?.ToString() ?? "Medium",
             ThumbnailTextPlacement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center",
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", string textPlacement = "Center", string outlineThickness = "Medium", string fontFamily = "Arial", bool jpeg = false)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", string textPlacement = "Center", string outlineThickness = "Medium", string fontFamily = "Arial", string panelOpacity = "Medium", bool jpeg = false)
     {
         var background = theme switch
         {
@@ -512,7 +526,7 @@ public partial class MainPage : ContentPage
         using var bitmap = new SKBitmap(width, height);
         using (var canvas = new SKCanvas(bitmap))
         using (var panelPaint = new SKPaint { Color = new SKColor(12, 12, 24, 70), IsAntialias = true })
-        using (var textPanelPaint = new SKPaint { Color = panelStyle switch { "Light" => new SKColor(230, 235, 245, 225), "Theme" => new SKColor(background.Red, background.Green, background.Blue, 205), "None" => SKColors.Transparent, _ => new SKColor(12, 12, 24, 190) }, IsAntialias = true })
+        using (var textPanelPaint = new SKPaint { Color = panelStyle switch { "Light" => new SKColor(230, 235, 245, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)), "Theme" => new SKColor(background.Red, background.Green, background.Blue, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)), "None" => SKColors.Transparent, _ => new SKColor(12, 12, 24, (byte)(panelOpacity == "Subtle" ? 102 : panelOpacity == "Strong" ? 230 : 179)) }, IsAntialias = true })
         using (var titleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 3, "Thick" => 11, _ => 7 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round, TextSize = titleSize switch { "Small" => 60, "Large" => 92, _ => 76 }, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
         using (var subtitleOutlinePaint = new SKPaint { Color = outlineColor switch { "White" => SKColors.White, "None" => SKColors.Transparent, _ => SKColors.Black }, Style = SKPaintStyle.Stroke, StrokeWidth = outlineThickness switch { "Thin" => 2, "Thick" => 8, _ => 5 }, IsAntialias = true, StrokeJoin = SKStrokeJoin.Round, TextSize = subtitleSize switch { "Small" => 26, "Large" => 42, _ => 34 }, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Normal), TextAlign = SKTextAlign.Center })
         using (var titlePaint = new SKPaint { Color = textColor switch { "Yellow" => SKColors.Yellow, "Black" => SKColors.Black, _ => SKColors.White }, TextSize = titleSize switch { "Small" => 60, "Large" => 92, _ => 76 }, IsAntialias = true, Typeface = SKTypeface.FromFamilyName(fontFamily, SKFontStyle.Bold), TextAlign = SKTextAlign.Center })
