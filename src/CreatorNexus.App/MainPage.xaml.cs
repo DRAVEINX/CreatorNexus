@@ -132,6 +132,15 @@ public partial class MainPage : ContentPage
             BackgroundColor = Color.FromArgb("#262638")
         };
         var panelStyles = new[] { "None", "Dark", "Light", "Theme" };
+        var titlePlacements = new[] { "Top", "Center", "Bottom" };
+        var titlePlacementPicker = new Picker
+        {
+            Title = _english ? "Text placement" : "Tekstpositie",
+            ItemsSource = titlePlacements,
+            SelectedItem = titlePlacements.Contains(project.ThumbnailTextPlacement) ? project.ThumbnailTextPlacement : "Center",
+            TextColor = Colors.White,
+            BackgroundColor = Color.FromArgb("#262638")
+        };
         var panelStylePicker = new Picker
         {
             Title = _english ? "Text background panel" : "Achtergrond achter tekst",
@@ -228,6 +237,7 @@ public partial class MainPage : ContentPage
             previewHeadline.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = 3, Opacity = 1 };
             previewSubtitle.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = 3, Opacity = 1 };
             var layout = layoutPicker.SelectedItem?.ToString() ?? "Center";
+            var placement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center";
             var previewStack = (VerticalStackLayout)previewTextPanel.Content;
             previewStack.VerticalOptions = layout switch
             {
@@ -236,11 +246,16 @@ public partial class MainPage : ContentPage
                 _ => LayoutOptions.Center
             };
             previewStack.Padding = new Thickness(0);
-            previewTextPanel.VerticalOptions = layout switch
+            previewTextPanel.VerticalOptions = placement switch
             {
-                "Top banner" => LayoutOptions.Start,
-                "Bottom banner" => LayoutOptions.End,
-                _ => LayoutOptions.Center
+                "Top" => LayoutOptions.Start,
+                "Bottom" => LayoutOptions.End,
+                _ => layout switch
+                {
+                    "Top banner" => LayoutOptions.Start,
+                    "Bottom banner" => LayoutOptions.End,
+                    _ => LayoutOptions.Center
+                }
             };
             var panelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark";
             previewTextPanel.IsVisible = panelStyle != "None";
@@ -269,6 +284,7 @@ public partial class MainPage : ContentPage
         textColorPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         outlineColorPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         panelStylePicker.SelectedIndexChanged += (_, _) => RefreshPreview();
+        titlePlacementPicker.SelectedIndexChanged += (_, _) => RefreshPreview();
         RefreshPreview();
 
         string? selectedImagePath = project.ThumbnailImagePath;
@@ -365,6 +381,8 @@ public partial class MainPage : ContentPage
                         outlineColorPicker,
                         new Label { Text = _english ? "Text background panel" : "Achtergrond achter tekst", TextColor = Colors.White },
                         panelStylePicker,
+                        new Label { Text = _english ? "Text placement" : "Tekstpositie", TextColor = Colors.White },
+                        titlePlacementPicker,
                         chooseImageButton,
                         exportButton,
                         exportJpegButton,
@@ -385,7 +403,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark");
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center");
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail PNG" : "Thumbnail-PNG delen",
@@ -406,7 +424,7 @@ public partial class MainPage : ContentPage
             var theme = picker.SelectedItem?.ToString() ?? "Purple";
             try
             {
-                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", true);
+                var exportPath = await ExportThumbnailPngAsync(project.Title, headline, subtitle, theme, selectedImagePath, alignmentPicker.SelectedItem?.ToString() ?? "Center", titleSizePicker.SelectedItem?.ToString() ?? "Medium", subtitleSizePicker.SelectedItem?.ToString() ?? "Medium", layoutPicker.SelectedItem?.ToString() ?? "Center", textColorPicker.SelectedItem?.ToString() ?? "White", outlineColorPicker.SelectedItem?.ToString() ?? "Black", panelStylePicker.SelectedItem?.ToString() ?? "Dark", titlePlacementPicker.SelectedItem?.ToString() ?? "Center", true);
                 await Share.Default.RequestAsync(new ShareFileRequest
                 {
                     Title = _english ? "Share thumbnail JPG" : "Thumbnail-JPG delen",
@@ -444,12 +462,13 @@ public partial class MainPage : ContentPage
             ThumbnailTextColor = textColorPicker.SelectedItem?.ToString() ?? "White",
             ThumbnailTextOutlineColor = outlineColorPicker.SelectedItem?.ToString() ?? "Black",
             ThumbnailTextPanelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark",
+            ThumbnailTextPlacement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center",
             UpdatedAt = DateTimeOffset.UtcNow
         });
         await LoadProjectsAsync();
     }
 
-    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", bool jpeg = false)
+    private async Task<string> ExportThumbnailPngAsync(string projectTitle, string headline, string subtitle, string theme, string? imagePath, string textAlignment = "Center", string titleSize = "Medium", string subtitleSize = "Medium", string layout = "Center", string textColor = "White", string outlineColor = "Black", string panelStyle = "Dark", string textPlacement = "Center", bool jpeg = false)
     {
         var background = theme switch
         {
@@ -510,11 +529,16 @@ public partial class MainPage : ContentPage
             const float titleLineHeight = 88f;
             const float subtitleLineHeight = 44f;
             var totalHeight = titleLines.Length * titleLineHeight + (subtitleLines.Length > 0 ? 38 + subtitleLines.Length * subtitleLineHeight : 0);
-            var y = layout switch
+            var y = textPlacement switch
             {
-                "Top banner" => 110f + titleLineHeight * 0.78f,
-                "Bottom banner" => height - totalHeight - 100f + titleLineHeight * 0.78f,
-                _ => (height - totalHeight) / 2f + titleLineHeight * 0.78f
+                "Top" => 110f + titleLineHeight * 0.78f,
+                "Bottom" => height - totalHeight - 100f + titleLineHeight * 0.78f,
+                _ => layout switch
+                {
+                    "Top banner" => 110f + titleLineHeight * 0.78f,
+                    "Bottom banner" => height - totalHeight - 100f + titleLineHeight * 0.78f,
+                    _ => (height - totalHeight) / 2f + titleLineHeight * 0.78f
+                }
             };
             if (panelStyle != "None")
             {
