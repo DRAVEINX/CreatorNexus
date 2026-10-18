@@ -102,4 +102,44 @@ public class ProjectBackupRulesTests
     {
         Assert.Throws<ArgumentNullException>(() => ProjectBackupRules.Validate(null!));
     }
+
+    [Fact]
+    public void ReadAndValidateBackupReturnsOnlyValidatedProjects()
+    {
+        var expected = new[] { new CreatorProject { Title = "Verified project" } };
+        var backup = ProjectBackupCodec.Serialize(expected);
+
+        var restored = ProjectBackupRules.ReadAndValidateBackup(backup);
+
+        Assert.Equal(expected, restored);
+    }
+
+    [Fact]
+    public void ReadAndValidateBackupRejectsInvalidProjectCollection()
+    {
+        var backup = ProjectBackupCodec.Serialize(new[] { new CreatorProject { Title = "   " } });
+
+        var error = Assert.Throws<InvalidDataException>(
+            () => ProjectBackupRules.ReadAndValidateBackup(backup));
+
+        Assert.Contains("invalid title or status", error.Message);
+        Assert.Contains("Existing projects were not changed", error.Message);
+    }
+
+    [Fact]
+    public void ReadAndValidateBackupRejectsDuplicateIdsBeforeReturningData()
+    {
+        var id = Guid.NewGuid();
+        var backup = ProjectBackupCodec.Serialize(new[]
+        {
+            new CreatorProject { Id = id, Title = "First" },
+            new CreatorProject { Id = id, Title = "Second" }
+        });
+
+        var error = Assert.Throws<InvalidDataException>(
+            () => ProjectBackupRules.ReadAndValidateBackup(backup));
+
+        Assert.Contains("duplicate project IDs", error.Message);
+        Assert.Contains("Existing projects were not changed", error.Message);
+    }
 }

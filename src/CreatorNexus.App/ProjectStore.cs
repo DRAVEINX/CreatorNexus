@@ -109,17 +109,14 @@ public sealed class ProjectStore
                     json = await reader.ReadToEndAsync();
                 }
 
-                projects = ProjectBackupCodec.Deserialize(json);
+                projects = ProjectBackupRules.ReadAndValidateBackup(json);
             }
             catch (JsonException ex)
             {
                 throw new InvalidDataException("The selected backup is not valid CreatorNexus JSON. Existing projects were not changed.", ex);
             }
 
-            var validationError = ProjectBackupRules.Validate(projects);
-            if (validationError is not null)
-                throw new InvalidDataException($"{validationError} Existing projects were not changed.");
-
+            // The complete parse-and-validation gate must pass before saved data is replaced.
             await SaveCoreAsync(projects);
         }
         finally { _gate.Release(); }

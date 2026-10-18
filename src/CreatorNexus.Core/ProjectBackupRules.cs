@@ -19,6 +19,22 @@ public static class ProjectBackupRules
     }
 
     /// <summary>
+    /// Parses and validates a backup in one operation. Callers must not replace saved data
+    /// unless this method returns successfully.
+    /// </summary>
+    public static List<CreatorProject> ReadAndValidateBackup(string json)
+    {
+        ArgumentNullException.ThrowIfNull(json);
+
+        var projects = ProjectBackupCodec.Deserialize(json);
+        var validationError = Validate(projects);
+        if (validationError is not null)
+            throw new InvalidDataException($"{validationError} Existing projects were not changed.");
+
+        return projects;
+    }
+
+    /// <summary>
     /// Returns an error message when a backup project collection is invalid; otherwise returns null.
     /// </summary>
     public static string? Validate(IReadOnlyList<CreatorProject?> projects)

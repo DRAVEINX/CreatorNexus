@@ -51,3 +51,5 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Older bare JSON-array backups remain importable for compatibility.
 - Missing and malformed checksum values, plus a missing project collection, are rejected.
 - Attempt an oversized export and confirm the previous destination file remains unchanged and temporary files are cleaned up.
+
+- The app and automated tests share a single parse-and-validation gate; restore must not call the save/replacement path unless the gate returns a validated project list.
