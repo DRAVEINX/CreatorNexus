@@ -1133,9 +1133,11 @@ public partial class MainPage : ContentPage
         var countLabel = new Label
         {
             TextColor = Color.FromArgb("#A5B4FC"),
-            FontSize = 12,
-            SemanticProperties.Description = _english ? "Word and character count" : "Aantal woorden en tekens"
+            FontSize = 12
         };
+        SemanticProperties.SetDescription(
+            countLabel,
+            _english ? "Word and character count" : "Aantal woorden en tekens");
         void UpdateTextCount()
         {
             var value = editor.Text ?? string.Empty;
