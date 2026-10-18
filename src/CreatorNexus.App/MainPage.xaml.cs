@@ -805,8 +805,8 @@ public partial class MainPage : ContentPage
             .ToList();
 
         var actions = _english
-            ? new[] { "Open/share selected file", "Remove selected entry", "Edit references", "Cancel" }
-            : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Verwijzingen bewerken", "Annuleren" };
+            ? new[] { "Open/share selected file", "Remove selected entry", "Edit references", "File information", "Cancel" }
+            : new[] { "Bestand openen/delen", "Geselecteerde verwijzing verwijderen", "Verwijzingen bewerken", "Bestandsinformatie", "Annuleren" };
         if (entries.Count == 0)
         {
             var emptyAction = await DisplayActionSheetAsync(
@@ -833,7 +833,7 @@ public partial class MainPage : ContentPage
         var selectedLine = entries[selectedIndex];
         var action = await DisplayActionSheetAsync(
             GetMediaDisplayName(selectedLine),
-            _english ? "Cancel" : "Annuleren", null, actions.Take(3).ToArray());
+            _english ? "Cancel" : "Annuleren", null, actions.Take(4).ToArray());
         if (action == actions[0])
         {
             var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
@@ -912,6 +912,33 @@ public partial class MainPage : ContentPage
         else if (action == actions[2])
         {
             await EditMediaReferencesAsync(project);
+        }
+        else if (action == actions[3])
+        {
+            var separator = selectedLine.IndexOf(" | ", StringComparison.Ordinal);
+            var path = separator >= 0 ? selectedLine[(separator + 3)..].Trim() : string.Empty;
+            string details;
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+            {
+                var info = new FileInfo(path);
+                var size = info.Length < 1024 * 1024
+                    ? $"{Math.Max(1, (info.Length + 1023) / 1024)} KB"
+                    : $"{info.Length / (1024d * 1024d):0.0} MB";
+                details = _english
+                    ? $"Name: {GetMediaDisplayName(selectedLine)}\\nType: {info.Extension.ToUpperInvariant()}\\nSize: {size}\\nStatus: Available locally"
+                    : $"Naam: {GetMediaDisplayName(selectedLine)}\\nType: {info.Extension.ToUpperInvariant()}\\nGrootte: {size}\\nStatus: Lokaal beschikbaar";
+            }
+            else
+            {
+                details = _english
+                    ? $"Name: {GetMediaDisplayName(selectedLine)}\\nStatus: Reference only or local file missing.\\nLocation: {string.IsNullOrWhiteSpace(path) ? "No local path stored" : path}"
+                    : $"Naam: {GetMediaDisplayName(selectedLine)}\\nStatus: Alleen verwijzing of lokaal bestand ontbreekt.\\nLocatie: {string.IsNullOrWhiteSpace(path) ? "Geen lokaal pad opgeslagen" : path}";
+            }
+
+            await DisplayAlertAsync(
+                _english ? "Media file information" : "Bestandsinformatie",
+                details,
+                _english ? "Close" : "Sluiten");
         }
     }
 
