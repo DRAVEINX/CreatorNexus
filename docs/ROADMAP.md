@@ -93,3 +93,5 @@ These features still require successful CI runs and hands-on Android phone, Andr
 
 
 - Startup project loading now catches storage-integrity errors and displays a localized recovery message while preserving the original saved file.
+
+- Added bilingual accessibility descriptions to icon-only project-card actions to improve screen-reader navigation; manual TalkBack and Windows accessibility verification remains required.

@@ -73,3 +73,8 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Verify the local `.bak` remains present after successful recovery; recovery must not copy a possibly damaged primary file over it.
 - With no `.bak` file, malformed JSON, duplicate IDs, invalid project fields, or a file over 50 MB, recovery must show an error and must not replace the primary project file.
 - Confirm cancel leaves all files and visible projects unchanged.
+
+
+## Accessibility labels
+- With TalkBack or another screen reader, verify icon-only project actions announce meaningful descriptions for status, editing, notes, favorites, scheduling, and delete.
+- Confirm the accessible descriptions do not change the visible layout and each action still invokes its original handler.
