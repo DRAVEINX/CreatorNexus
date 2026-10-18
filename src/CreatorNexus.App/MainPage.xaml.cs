@@ -100,6 +100,7 @@ public partial class MainPage : ContentPage
         if ((sender as Button)?.CommandParameter is not Guid id) return;
         var project = (await _store.LoadAsync()).FirstOrDefault(p => p.Id == id);
         if (project is null) return;
+        var styleStore = new ThumbnailStyleStore();
 
         var titleEntry = new Entry
         {
@@ -569,6 +570,20 @@ public partial class MainPage : ContentPage
             TextColor = Colors.White,
             CornerRadius = 12
         };
+        var saveStyleButton = new Button
+        {
+            Text = _english ? "Save reusable style" : "Stijl opslaan",
+            BackgroundColor = Color.FromArgb("#166534"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
+        var loadStyleButton = new Button
+        {
+            Text = _english ? "Load saved style" : "Opgeslagen stijl laden",
+            BackgroundColor = Color.FromArgb("#59451D"),
+            TextColor = Colors.White,
+            CornerRadius = 12
+        };
         var cancel = new Button { Text = _english ? "Cancel" : "Annuleren", BackgroundColor = Color.FromArgb("#262638"), TextColor = Colors.White, CornerRadius = 12 };
         var buttons = new Grid
         {
@@ -635,6 +650,8 @@ public partial class MainPage : ContentPage
                         titlePlacementPicker,
                         chooseImageButton,
                         reuseDesignButton,
+                        saveStyleButton,
+                        loadStyleButton,
                         exportButton,
                         exportJpegButton,
                         new Label { Text = _english ? "Optional: add your own image. Export creates a 1280×720 PNG or JPG." : "Optioneel: voeg je eigen afbeelding toe. Export maakt een PNG of JPG van 1280×720.", FontSize = 12, TextColor = Color.FromArgb("#B9B9C9") },
@@ -687,6 +704,107 @@ public partial class MainPage : ContentPage
                 await DisplayAlertAsync(_english ? "Export failed" : "Exporteren mislukt", ex.Message, _english ? "OK" : "Oké");
             }
         };
+        ThumbnailStylePreset BuildStylePreset(string name) => new()
+        {
+            Name = name,
+            Theme = picker.SelectedItem?.ToString() ?? "Purple",
+            TextAlignment = alignmentPicker.SelectedItem?.ToString() ?? "Center",
+            TitleSize = titleSizePicker.SelectedItem?.ToString() ?? "Medium",
+            SubtitleSize = subtitleSizePicker.SelectedItem?.ToString() ?? "Medium",
+            FontFamily = fontFamilyPicker.SelectedItem?.ToString() ?? "Arial",
+            Layout = layoutPicker.SelectedItem?.ToString() ?? "Center",
+            TextColor = textColorPicker.SelectedItem?.ToString() ?? "White",
+            TextOutlineColor = outlineColorPicker.SelectedItem?.ToString() ?? "Black",
+            TextOutlineThickness = outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium",
+            TextPanelStyle = panelStylePicker.SelectedItem?.ToString() ?? "Dark",
+            TextPanelOpacity = panelOpacityPicker.SelectedItem?.ToString() ?? "Medium",
+            TextPanelPadding = panelPaddingPicker.SelectedItem?.ToString() ?? "Normal",
+            TextPanelCorners = panelCornersPicker.SelectedItem?.ToString() ?? "Rounded",
+            TextPanelBorder = panelBorderPicker.SelectedItem?.ToString() ?? "None",
+            TextPanelBorderColor = panelBorderColorPicker.SelectedItem?.ToString() ?? "White",
+            TextPanelBorderThickness = panelBorderThicknessPicker.SelectedItem?.ToString() ?? "Medium",
+            TextPanelBorderOpacity = panelBorderOpacityPicker.SelectedItem?.ToString() ?? "Strong",
+            TextPlacement = titlePlacementPicker.SelectedItem?.ToString() ?? "Center",
+            ImageFit = imageFitPicker.SelectedIndex == 1 ? "Fit" : "Cover"
+        };
+        saveStyleButton.Clicked += async (_, _) =>
+        {
+            var defaultName = $"{(picker.SelectedItem?.ToString() ?? "Purple")} {(_english ? "style" : "stijl")}";
+            var name = await DisplayPromptAsync(
+                _english ? "Save thumbnail style" : "Thumbnailstijl opslaan",
+                _english ? "Give this reusable style a name." : "Geef deze herbruikbare stijl een naam.",
+                initialValue: defaultName,
+                maxLength: 50);
+            if (string.IsNullOrWhiteSpace(name)) return;
+            try
+            {
+                await styleStore.SaveAsync(BuildStylePreset(name));
+                await DisplayAlertAsync(
+                    _english ? "Style saved" : "Stijl opgeslagen",
+                    _english ? $"“{name.Trim()}” is available in your saved styles." : $"“{name.Trim()}” staat nu bij je opgeslagen stijlen.",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Could not save style" : "Stijl opslaan mislukt", ex.Message, "OK");
+            }
+        };
+        loadStyleButton.Clicked += async (_, _) =>
+        {
+            try
+            {
+                var styles = await styleStore.LoadAsync();
+                if (styles.Count == 0)
+                {
+                    await DisplayAlertAsync(
+                        _english ? "No saved styles" : "Geen opgeslagen stijlen",
+                        _english ? "Save a style first to build your reusable style library." : "Sla eerst een stijl op om je eigen stijlenbibliotheek op te bouwen.",
+                        "OK");
+                    return;
+                }
+
+                var options = styles.Select(x => x.Name).ToArray();
+                var selectedName = await DisplayActionSheetAsync(
+                    _english ? "Choose a saved style" : "Kies een opgeslagen stijl",
+                    _english ? "Cancel" : "Annuleren",
+                    null,
+                    options);
+                if (string.IsNullOrWhiteSpace(selectedName) || selectedName == (_english ? "Cancel" : "Annuleren"))
+                    return;
+
+                var style = styles.FirstOrDefault(x => x.Name == selectedName);
+                if (style is null) return;
+                picker.SelectedItem = style.Theme;
+                alignmentPicker.SelectedItem = style.TextAlignment;
+                titleSizePicker.SelectedItem = style.TitleSize;
+                subtitleSizePicker.SelectedItem = style.SubtitleSize;
+                fontFamilyPicker.SelectedItem = style.FontFamily;
+                layoutPicker.SelectedItem = style.Layout;
+                textColorPicker.SelectedItem = style.TextColor;
+                outlineColorPicker.SelectedItem = style.TextOutlineColor;
+                outlineThicknessPicker.SelectedItem = style.TextOutlineThickness;
+                panelStylePicker.SelectedItem = style.TextPanelStyle;
+                panelOpacityPicker.SelectedItem = style.TextPanelOpacity;
+                panelPaddingPicker.SelectedItem = style.TextPanelPadding;
+                panelCornersPicker.SelectedItem = style.TextPanelCorners;
+                panelBorderPicker.SelectedItem = style.TextPanelBorder;
+                panelBorderColorPicker.SelectedItem = style.TextPanelBorderColor;
+                panelBorderThicknessPicker.SelectedItem = style.TextPanelBorderThickness;
+                panelBorderOpacityPicker.SelectedItem = style.TextPanelBorderOpacity;
+                titlePlacementPicker.SelectedItem = style.TextPlacement;
+                imageFitPicker.SelectedIndex = style.ImageFit == "Fit" ? 1 : 0;
+                RefreshPreview();
+                await DisplayAlertAsync(
+                    _english ? "Style loaded" : "Stijl geladen",
+                    _english ? $"“{style.Name}” has been applied. Save the project to keep the changes." : $"“{style.Name}” is toegepast. Sla het project op om de wijzigingen te bewaren.",
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlertAsync(_english ? "Could not load styles" : "Stijlen laden mislukt", ex.Message, "OK");
+            }
+        };
+
         reuseDesignButton.Clicked += async (_, _) =>
         {
             var headline = titleEntry.Text?.Trim() ?? string.Empty;
