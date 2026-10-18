@@ -25,6 +25,11 @@ Do not mark a release ready until automated tests and all applicable platform ch
 - Search production checklist, script, media references, and thumbnail headline/subtitle.
 - Confirm empty search still returns all projects and searches do not modify saved data.
 
+## Startup error handling
+- When the saved project file is malformed, oversized, or fails validation, launch should show a localized, actionable error instead of an unhandled startup exception.
+- Confirm the app explains that the original file is preserved and points to local recovery or portable-backup restore.
+- Confirm valid project data still loads normally and no project list is overwritten by the error handler.
+
 ## Storage integrity and recovery checks
 - Export a JSON backup from the app using the platform share sheet.
 - Restore a selected valid JSON backup from the app; verify the project list refreshes.

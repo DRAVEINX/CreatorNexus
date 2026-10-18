@@ -90,3 +90,6 @@ These features still require successful CI runs and hands-on Android phone, Andr
 
 ## Project duplication
 - Project cards now include a duplicate action. It copies creative content and design settings into a new project ID, resets workflow status, archive/favorite flags and scheduled date, and localizes the copy suffix.
+
+
+- Startup project loading now catches storage-integrity errors and displays a localized recovery message while preserving the original saved file.

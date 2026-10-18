@@ -24,8 +24,23 @@ public partial class MainPage : ContentPage
 
     private async Task LoadProjectsAsync()
     {
-        var projects = await _store.LoadAsync();
-        RenderProjects(GetFilteredProjects(projects, ProjectSearchBar.Text));
+        try
+        {
+            var projects = await _store.LoadAsync();
+            RenderProjects(GetFilteredProjects(projects, ProjectSearchBar.Text));
+        }
+        catch (Exception ex)
+        {
+            // Keep the UI responsive and explain the recovery path instead of leaving
+            // a fire-and-forget startup task with an unhandled exception.
+            RenderProjects(Array.Empty<CreatorProject>());
+            await DisplayAlertAsync(
+                _english ? "Projects could not be loaded" : "Projecten konden niet worden geladen",
+                _english
+                    ? "CreatorNexus could not read the saved project data. Your original file has been preserved. Use 'Recover local backup' if a valid local backup exists, or restore a portable backup. Details: " + ex.Message
+                    : "CreatorNexus kon de opgeslagen projectgegevens niet lezen. Het oorspronkelijke bestand is bewaard. Gebruik 'Herstel lokale back-up' als er een geldige lokale back-up bestaat, of zet een externe back-up terug. Details: " + ex.Message,
+                "OK");
+        }
     }
 
     private IEnumerable<CreatorProject> GetFilteredProjects(IEnumerable<CreatorProject> projects, string? searchText)
