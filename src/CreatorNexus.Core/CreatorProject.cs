@@ -19,6 +19,7 @@ public sealed record CreatorProject
     public string ThumbnailTextAlignment { get; init; } = "Center";
     public string ThumbnailTitleSize { get; init; } = "Medium";
     public string ThumbnailSubtitleSize { get; init; } = "Medium";
+    public string ThumbnailFontFamily { get; init; } = "Arial";
     public string ThumbnailLayout { get; init; } = "Center";
     public string ThumbnailTextColor { get; init; } = "White";
     public string ThumbnailTextOutlineColor { get; init; } = "Black";
