@@ -244,7 +244,7 @@ public partial class MainPage : ContentPage
             var outlineColor = outlineColorPicker.SelectedItem?.ToString() ?? "Black";
             var previewOutline = outlineColor switch { "White" => Colors.White, "Black" => Colors.Black, _ => Colors.Transparent };
             var outlineThickness = outlineThicknessPicker.SelectedItem?.ToString() ?? "Medium";
-            var shadowRadius = outlineThickness switch { "Thin" => 1d, "Thick" => 5d, _ => 3d };
+            var shadowRadius = outlineThickness switch { "Thin" => 1f, "Thick" => 5f, _ => 3f };
             previewHeadline.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = shadowRadius, Opacity = 1 };
             previewSubtitle.Shadow = outlineColor == "None" ? null : new Shadow { Brush = previewOutline, Offset = new Point(1, 1), Radius = shadowRadius, Opacity = 1 };
             var layout = layoutPicker.SelectedItem?.ToString() ?? "Center";
