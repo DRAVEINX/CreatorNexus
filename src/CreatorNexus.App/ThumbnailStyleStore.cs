@@ -62,5 +62,41 @@ public sealed class ThumbnailStyleStore
             }
         }
         finally { _gate.Release(); }
+    } 
+    public async Task<bool> DeleteAsync(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return false;
+        await _gate.WaitAsync();
+        try
+        {
+            if (!File.Exists(_filePath)) return false;
+            List<ThumbnailStylePreset> all;
+            await using (var input = File.OpenRead(_filePath))
+            {
+                all = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(input, Options)
+                    ?? throw new InvalidDataException("The saved thumbnail style library is invalid. Existing data was preserved.");
+            }
+
+            var removed = all.RemoveAll(x => string.Equals(x.Name, name.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (removed == 0) return false;
+
+            var temp = _filePath + ".tmp";
+            try
+            {
+                await using (var output = File.Create(temp))
+                {
+                    await JsonSerializer.SerializeAsync(output, all, Options);
+                    await output.FlushAsync();
+                }
+                File.Move(temp, _filePath, true);
+            }
+            finally
+            {
+                if (File.Exists(temp)) File.Delete(temp);
+            }
+            return true;
+        }
+        finally { _gate.Release(); }
     }
+
 }
