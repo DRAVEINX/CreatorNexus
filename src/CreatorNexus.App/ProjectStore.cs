@@ -105,16 +105,9 @@ public sealed class ProjectStore
                 throw new InvalidDataException("The selected backup is not valid CreatorNexus JSON. Existing projects were not changed.", ex);
             }
 
-            if (projects.Any(p => p is null))
-                throw new InvalidDataException("The backup contains an empty project entry. Existing projects were not changed.");
-
-            if (projects.Any(p => p.Id == Guid.Empty) || projects.Select(p => p.Id).Distinct().Count() != projects.Count)
-                throw new InvalidDataException("The backup contains invalid or duplicate project IDs. Existing projects were not changed.");
-
-            if (projects.Any(p => string.IsNullOrWhiteSpace(p.Title)
-                || p.Title.Trim().Length > 120
-                || !Enum.IsDefined(p.Status)))
-                throw new InvalidDataException("The backup contains a project with an invalid title or status. Existing projects were not changed.");
+            var validationError = ProjectBackupRules.Validate(projects);
+            if (validationError is not null)
+                throw new InvalidDataException($"{validationError} Existing projects were not changed.");
 
             await SaveCoreAsync(projects);
         }
