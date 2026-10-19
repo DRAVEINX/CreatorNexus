@@ -18,6 +18,7 @@ public sealed class ThumbnailStyleStore
             await using var stream = File.OpenRead(_filePath);
             var styles = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(stream, Options)
                 ?? throw new InvalidDataException("The saved thumbnail style library is empty or invalid.");
+            ValidateStoredStyles(styles);
             return styles.OrderBy(style => style.Name, StringComparer.OrdinalIgnoreCase).ToList();
         }
         finally { _gate.Release(); }
@@ -52,6 +53,7 @@ public sealed class ThumbnailStyleStore
                 await using var input = File.OpenRead(_filePath);
                 all = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(input, Options)
                     ?? throw new InvalidDataException("The saved thumbnail style library is invalid. Existing data was preserved.");
+                ValidateStoredStyles(all);
             }
 
             foreach (var preset in incoming)
@@ -81,6 +83,15 @@ public sealed class ThumbnailStyleStore
         finally { _gate.Release(); }
     }
 
+    private static void ValidateStoredStyles(IReadOnlyCollection<ThumbnailStylePreset> styles)
+    {
+        if (styles.Any(style => style is null || !style.IsValid()))
+            throw new InvalidDataException("The saved thumbnail style library contains an invalid style. Existing data was preserved.");
+
+        if (styles.GroupBy(style => style.Name.Trim(), StringComparer.OrdinalIgnoreCase).Any(group => group.Count() > 1))
+            throw new InvalidDataException("The saved thumbnail style library contains duplicate names. Existing data was preserved.");
+    }
+
     public async Task<bool> DeleteAsync(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return false;
@@ -93,6 +104,7 @@ public sealed class ThumbnailStyleStore
             {
                 all = await JsonSerializer.DeserializeAsync<List<ThumbnailStylePreset>>(input, Options)
                     ?? throw new InvalidDataException("The saved thumbnail style library is invalid. Existing data was preserved.");
+                ValidateStoredStyles(all);
             }
 
             var removed = all.RemoveAll(x => string.Equals(x.Name, name.Trim(), StringComparison.OrdinalIgnoreCase));
