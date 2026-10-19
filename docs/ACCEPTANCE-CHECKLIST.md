@@ -58,6 +58,14 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Verify the export/share flow and file picker on Android phone, Android tablet and Windows.
 - [ ] Restart the app after import/replacement and confirm the saved library persists.
 
+## Saved thumbnail style library integrity
+
+- [ ] Corrupt the style-library JSON in a disposable test profile; confirm load/import/export/delete reports a clear error and does not silently overwrite the original file.
+- [ ] Test a JSON library containing a null entry; confirm the library is rejected safely and the file remains unchanged.
+- [ ] Test a JSON library containing an invalid or unsupported style option; confirm load and write operations reject it without modifying the stored file.
+- [ ] Test stored style names that differ only by letter casing or surrounding whitespace; confirm duplicate data is rejected rather than ambiguously loaded or edited.
+- [ ] After each rejected operation, restore a valid test library and verify it loads normally.
+
 ## Saved thumbnail style name-collision protection
 
 - [ ] Save a new style with a unique name; confirm it appears in the saved library.
