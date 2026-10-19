@@ -77,6 +77,9 @@ public partial class MainPage : ContentPage
         ProjectCountLabel.Text = _english
             ? $"{_visibleProjects.Count} projects"
             : $"{_visibleProjects.Count} projecten";
+        SemanticProperties.SetDescription(ProjectCountLabel, _english
+            ? $"{_visibleProjects.Count} projects are visible in the current view."
+            : $"Er zijn {_visibleProjects.Count} projecten zichtbaar in de huidige weergave.");
 
         if (_visibleProjects.Count > 0)
         {
