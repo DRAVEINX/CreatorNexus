@@ -2136,7 +2136,17 @@ public partial class MainPage : ContentPage
 
         NewProjectEntry.Text = string.Empty;
         ProjectSearchBar.Text = string.Empty;
+
+        // Show the newly created project even if the user was browsing a
+        // filtered view such as favorites, scheduled content, or the archive.
         _showArchived = false;
+        _showFavoritesOnly = false;
+        _showScheduleOnly = false;
+        FavoriteFilterButton.BackgroundColor = Color.FromArgb("#262638");
+        ScheduleViewButton.BackgroundColor = Color.FromArgb("#262638");
+        ProjectsHeading.Text = _english ? "Your projects" : "Jouw projecten";
+        ArchiveViewButton.Text = _english ? "Archive" : "Archief";
+
         await LoadProjectsAsync();
     }
 
