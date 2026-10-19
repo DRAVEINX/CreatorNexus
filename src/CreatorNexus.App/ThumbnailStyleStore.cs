@@ -26,9 +26,22 @@ public sealed class ThumbnailStyleStore
     public async Task SaveAsync(ThumbnailStylePreset preset)
     {
         ArgumentNullException.ThrowIfNull(preset);
-        var name = preset.Name.Trim();
-        if (!preset.IsValid())
-            throw new ArgumentException("The thumbnail style contains a missing name or unsupported option.", nameof(preset));
+        await SaveManyAsync(new[] { preset });
+    }
+
+    /// <summary>Validates and saves a set of styles as one atomic library update.</summary>
+    public async Task SaveManyAsync(IEnumerable<ThumbnailStylePreset> presets)
+    {
+        ArgumentNullException.ThrowIfNull(presets);
+        var incoming = presets.ToList();
+        if (incoming.Count == 0)
+            throw new ArgumentException("At least one thumbnail style is required.", nameof(presets));
+        if (incoming.Any(preset => preset is null || !preset.IsValid()))
+            throw new ArgumentException("One or more thumbnail styles contain a missing name or unsupported option.", nameof(presets));
+
+        incoming = incoming.Select(preset => preset with { Name = preset.Name.Trim() }).ToList();
+        if (incoming.GroupBy(preset => preset.Name, StringComparer.OrdinalIgnoreCase).Any(group => group.Count() > 1))
+            throw new ArgumentException("The incoming styles contain duplicate names.", nameof(presets));
 
         await _gate.WaitAsync();
         try
@@ -41,11 +54,14 @@ public sealed class ThumbnailStyleStore
                     ?? throw new InvalidDataException("The saved thumbnail style library is invalid. Existing data was preserved.");
             }
 
-            var existing = all.FindIndex(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
-            var named = preset with { Name = name };
-            if (existing >= 0) all[existing] = named;
-            else all.Add(named);
+            foreach (var preset in incoming)
+            {
+                var existing = all.FindIndex(x => string.Equals(x.Name, preset.Name, StringComparison.OrdinalIgnoreCase));
+                if (existing >= 0) all[existing] = preset;
+                else all.Add(preset);
+            }
 
+            all = all.OrderBy(style => style.Name, StringComparer.OrdinalIgnoreCase).ToList();
             Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
             var temp = _filePath + ".tmp";
             try
@@ -63,7 +79,8 @@ public sealed class ThumbnailStyleStore
             }
         }
         finally { _gate.Release(); }
-    } 
+    }
+
     public async Task<bool> DeleteAsync(string name)
     {
         if (string.IsNullOrWhiteSpace(name)) return false;
