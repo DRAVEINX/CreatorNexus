@@ -2446,6 +2446,7 @@ public partial class MainPage : ContentPage
         _showFavoritesOnly = false;
         _showScheduleOnly = false;
         _showArchived = false;
+        UpdateNavigationSemanticDescriptions();
         ProjectSearchBar.Text = string.Empty;
         FavoriteFilterButton.BackgroundColor = Color.FromArgb("#262638");
         ScheduleViewButton.BackgroundColor = Color.FromArgb("#262638");
@@ -2457,6 +2458,7 @@ public partial class MainPage : ContentPage
     private async void OnToggleFavoritesFilterClicked(object sender, EventArgs e)
     {
         _showFavoritesOnly = !_showFavoritesOnly;
+        UpdateNavigationSemanticDescriptions();
         FavoriteFilterButton.BackgroundColor = _showFavoritesOnly ? Color.FromArgb("#59451D") : Color.FromArgb("#262638");
         await LoadProjectsAsync();
     }
@@ -2464,6 +2466,7 @@ public partial class MainPage : ContentPage
     private async void OnToggleScheduleViewClicked(object sender, EventArgs e)
     {
         _showScheduleOnly = !_showScheduleOnly;
+        UpdateNavigationSemanticDescriptions();
         ScheduleViewButton.BackgroundColor = _showScheduleOnly ? Color.FromArgb("#30264A") : Color.FromArgb("#262638");
         ProjectsHeading.Text = _showScheduleOnly
             ? (_english ? "Content calendar" : "Contentkalender")
@@ -2474,6 +2477,7 @@ public partial class MainPage : ContentPage
     private async void OnToggleArchivedViewClicked(object sender, EventArgs e)
     {
         _showArchived = !_showArchived;
+        UpdateNavigationSemanticDescriptions();
         ArchiveViewButton.Text = _showArchived
             ? (_english ? "Active projects" : "Actieve projecten")
             : (_english ? "Archive" : "Archief");
@@ -2654,12 +2658,8 @@ public partial class MainPage : ContentPage
         ApplyLanguage();
     }
 
-    private void ApplyLanguage()
+    private void UpdateNavigationSemanticDescriptions()
     {
-        LanguageButton.Text = _english ? "NL" : "EN";
-        SemanticProperties.SetDescription(LanguageButton, _english
-            ? "Switch the app language to Dutch"
-            : "Schakel de app-taal naar Engels");
         SemanticProperties.SetDescription(FavoriteFilterButton, _english
             ? (_showFavoritesOnly ? "Show all projects; favorites filter is active" : "Show favorite projects only")
             : (_showFavoritesOnly ? "Alle projecten tonen; favorietenfilter is actief" : "Alleen favoriete projecten tonen"));
@@ -2669,6 +2669,15 @@ public partial class MainPage : ContentPage
         SemanticProperties.SetDescription(ArchiveViewButton, _english
             ? (_showArchived ? "Switch to active projects" : "Open archived projects")
             : (_showArchived ? "Terug naar actieve projecten" : "Gearchiveerde projecten openen"));
+    }
+
+    private void ApplyLanguage()
+    {
+        LanguageButton.Text = _english ? "NL" : "EN";
+        SemanticProperties.SetDescription(LanguageButton, _english
+            ? "Switch the app language to Dutch"
+            : "Schakel de app-taal naar Engels");
+        UpdateNavigationSemanticDescriptions();
         SubtitleLabel.Text = _english ? "Your creative command center" : "Jouw creatieve commandocentrum";
         WelcomeLabel.Text = _english ? "Turn ideas into real projects." : "Maak van ideeën echte projecten.";
         IntroLabel.Text = _english
