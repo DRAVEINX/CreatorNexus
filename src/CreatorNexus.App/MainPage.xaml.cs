@@ -2070,12 +2070,29 @@ public partial class MainPage : ContentPage
                 : new[] { "Hoofdafbeelding kiezen", "Koptekst en visuele hiërarchie instellen", "Contrast en leesbaarheid controleren", "Voorbeeld op mobiel formaat controleren", "Uitsnede en beeldkader controleren", "Exporteren als PNG of JPG", "Eindbestand controleren" },
             _ => Array.Empty<string>()
         };
-        var templateText = string.Join("; ", templateTasks);
-        var initialChecklist = string.IsNullOrWhiteSpace(templateText)
-            ? project.Checklist
-            : string.IsNullOrWhiteSpace(project.Checklist)
-                ? templateText
-                : $"{project.Checklist.Trim().TrimEnd(';')}; {templateText}";
+        var existingTasks = project.Checklist
+            .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+        var existingTaskNames = existingTasks
+            .Select(task => task
+                .Replace("[x]", "", StringComparison.OrdinalIgnoreCase)
+                .Replace("[ ]", "", StringComparison.Ordinal)
+                .Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var addedTasks = templateTasks
+            .Where(task => !existingTaskNames.Contains(task))
+            .ToArray();
+        var initialChecklist = string.Join("; ", existingTasks.Concat(addedTasks));
+
+        if (templateTasks.Length > 0 && addedTasks.Length == 0)
+        {
+            await DisplayAlertAsync(
+                _english ? "Checklist template already added" : "Checklist-sjabloon al toegevoegd",
+                _english
+                    ? "All tasks from this template are already in the checklist. No duplicate tasks were added."
+                    : "Alle taken uit dit sjabloon staan al in de checklist. Er zijn geen dubbele taken toegevoegd.",
+                "OK");
+        }
 
         var checklist = await DisplayPromptAsync(
             _english ? "Production checklist" : "Productiechecklist",
