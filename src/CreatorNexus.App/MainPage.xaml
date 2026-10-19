@@ -50,6 +50,7 @@
                             <VerticalStackLayout Spacing="6">
                                 <Label x:Name="EmptyTitleLabel" Text="Nog geen projecten" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" />
                                 <Label x:Name="EmptySubtitleLabel" Text="Maak hierboven je eerste creatorproject." FontSize="13" TextColor="{StaticResource TextMuted}" />
+                                <Button x:Name="ClearFiltersButton" Text="Filters wissen" Clicked="OnClearFiltersClicked" IsVisible="False" BackgroundColor="#30264A" TextColor="White" CornerRadius="10" />
                             </VerticalStackLayout>
                         </Border>
                     </CollectionView.EmptyView>
