@@ -1065,9 +1065,29 @@ public partial class MainPage : ContentPage
                 var collisions = imported.Where(x => existing.Any(y => string.Equals(y.Name, x.Name.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
                 var addedPreviewCount = imported.Count - collisions.Count;
                 var replacedPreviewCount = collisions.Count;
+                var collisionNames = collisions
+                    .Select(style => style.Name.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                var collisionPreview = string.Join(", ", collisionNames.Take(5).Select(name => $"“{name}”"));
+                if (collisionNames.Count > 5)
+                {
+                    collisionPreview += _english
+                        ? $", and {collisionNames.Count - 5} more"
+                        : $", en nog {collisionNames.Count - 5}";
+                }
+
                 var importSummary = _english
                     ? $"Ready to import {imported.Count} style(s): {addedPreviewCount} new and {replacedPreviewCount} replacement(s)."
                     : $"Klaar om {imported.Count} stijl(en) te importeren: {addedPreviewCount} nieuw en {replacedPreviewCount} vervanging(en).";
+                if (collisionNames.Count > 0)
+                {
+                    importSummary += _english
+                        ? $"\nStyles to replace: {collisionPreview}"
+                        : $"\nTe vervangen stijlen: {collisionPreview}";
+                }
+
                 var confirmed = await DisplayAlertAsync(
                     _english ? "Confirm style import" : "Importeren bevestigen",
                     importSummary,
