@@ -2283,10 +2283,21 @@ public partial class MainPage : ContentPage
         if (tags is null)
             return;
 
+        var enteredTags = tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var tooLongTag = enteredTags.FirstOrDefault(tag => tag.Length > 40);
+        if (tooLongTag is not null)
+        {
+            await DisplayAlertAsync(
+                _english ? "Tag is too long" : "Tag is te lang",
+                _english
+                    ? $"Each tag can contain at most 40 characters. “{tooLongTag[..Math.Min(60, tooLongTag.Length)]}” was not saved."
+                    : $"Elke tag mag maximaal 40 tekens bevatten. “{tooLongTag[..Math.Min(60, tooLongTag.Length)]}” is niet opgeslagen.",
+                _english ? "OK" : "Oké");
+            return;
+        }
+
         var normalizedTags = string.Join(", ",
-            tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(tag => tag.Length <= 40)
-                .Distinct(StringComparer.OrdinalIgnoreCase));
+            enteredTags.Distinct(StringComparer.OrdinalIgnoreCase));
 
         await _store.UpdateAsync(project with
         {
