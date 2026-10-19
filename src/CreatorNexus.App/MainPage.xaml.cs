@@ -1075,8 +1075,7 @@ public partial class MainPage : ContentPage
                     if (!confirmed) return;
                 }
 
-                foreach (var style in imported)
-                    await styleStore.SaveAsync(style with { Name = style.Name.Trim() });
+                await styleStore.SaveManyAsync(imported.Select(style => style with { Name = style.Name.Trim() }));
 
                 await DisplayAlertAsync(
                     _english ? "Style library imported" : "Stijlenbibliotheek geïmporteerd",
