@@ -2580,6 +2580,18 @@ public partial class MainPage : ContentPage
     private void ApplyLanguage()
     {
         LanguageButton.Text = _english ? "NL" : "EN";
+        SemanticProperties.SetDescription(LanguageButton, _english
+            ? "Switch the app language to Dutch"
+            : "Schakel de app-taal naar Engels");
+        SemanticProperties.SetDescription(FavoriteFilterButton, _english
+            ? (_showFavoritesOnly ? "Show all projects; favorites filter is active" : "Show favorite projects only")
+            : (_showFavoritesOnly ? "Alle projecten tonen; favorietenfilter is actief" : "Alleen favoriete projecten tonen"));
+        SemanticProperties.SetDescription(ScheduleViewButton, _english
+            ? (_showScheduleOnly ? "Show all projects; calendar filter is active" : "Show scheduled projects only")
+            : (_showScheduleOnly ? "Alle projecten tonen; kalenderfilter is actief" : "Alleen ingeplande projecten tonen"));
+        SemanticProperties.SetDescription(ArchiveViewButton, _english
+            ? (_showArchived ? "Switch to active projects" : "Open archived projects")
+            : (_showArchived ? "Terug naar actieve projecten" : "Gearchiveerde projecten openen"));
         SubtitleLabel.Text = _english ? "Your creative command center" : "Jouw creatieve commandocentrum";
         WelcomeLabel.Text = _english ? "Turn ideas into real projects." : "Maak van ideeën echte projecten.";
         IntroLabel.Text = _english
