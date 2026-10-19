@@ -7,7 +7,8 @@ public sealed class ProjectStore
 {
     private readonly string _filePath = Path.Combine(FileSystem.AppDataDirectory, "creator-projects.json");
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    // All store instances share one lock so concurrent callers cannot overwrite each other's updates.
+    private static readonly SemaphoreSlim _gate = new(1, 1);
 
     public async Task<IReadOnlyList<CreatorProject>> LoadAsync()
     {
