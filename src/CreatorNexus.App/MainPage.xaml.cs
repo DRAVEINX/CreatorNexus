@@ -14,6 +14,7 @@ public partial class MainPage : ContentPage
     private bool _showFavoritesOnly;
     private bool _showScheduleOnly;
     private bool _searchErrorShown;
+    private int _searchRequestVersion;
 
     public MainPage()
     {
@@ -2404,14 +2405,24 @@ public partial class MainPage : ContentPage
 
     private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
+        // Ignore stale reads if a newer keystroke finishes loading first.
+        var requestVersion = ++_searchRequestVersion;
+        var searchText = e.NewTextValue;
+
         try
         {
             var projects = await _store.LoadAsync();
+            if (requestVersion != _searchRequestVersion)
+                return;
+
             _searchErrorShown = false;
-            RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
+            RenderProjects(GetFilteredProjects(projects, searchText));
         }
         catch (Exception ex)
         {
+            if (requestVersion != _searchRequestVersion)
+                return;
+
             // TextChanged fires for each keystroke. Show one recovery alert per
             // continuous failure, not a cascade of identical dialogs.
             if (_searchErrorShown)
