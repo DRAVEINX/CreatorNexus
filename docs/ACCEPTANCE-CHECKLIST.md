@@ -55,6 +55,16 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Restart the app after import/replacement and confirm the saved library persists.
 
 
+## Saved thumbnail style name-collision protection
+
+- [ ] Save a new style with a unique name; confirm it appears in the saved library.
+- [ ] Save another style using an existing name with the same casing; confirm a replacement prompt appears before any change.
+- [ ] Repeat with different letter casing; confirm name matching is case-insensitive.
+- [ ] Cancel the replacement prompt; reload the style library and confirm the original style is unchanged.
+- [ ] Approve replacement; reload the style library and confirm the style now contains the new settings.
+- [ ] Duplicate a style using an existing name; confirm the app rejects the duplicate name and does not overwrite the original.
+- [ ] Confirm collision messages and replacement buttons are correctly localized in Dutch and English on Android phone, Android tablet and Windows.
+
 ## Saved thumbnail style search
 
 - [ ] Search styles to load using a partial name; confirm only matching styles are offered.
