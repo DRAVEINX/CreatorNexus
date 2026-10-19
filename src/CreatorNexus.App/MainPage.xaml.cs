@@ -2574,6 +2574,10 @@ public partial class MainPage : ContentPage
                 _showFavoritesOnly = false;
                 _showScheduleOnly = false;
                 ProjectSearchBar.Text = string.Empty;
+                FavoriteFilterButton.BackgroundColor = Color.FromArgb("#262638");
+                ScheduleViewButton.BackgroundColor = Color.FromArgb("#262638");
+                ProjectsHeading.Text = _english ? "Your projects" : "Jouw projecten";
+                ArchiveViewButton.Text = _english ? "Archive" : "Archief";
                 await LoadProjectsAsync();
                 await DisplayAlertAsync(
                     _english ? "Backup restored" : "Back-up teruggezet",
