@@ -39,7 +39,6 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Test keyboard-only navigation, visible focus and readable scaling.
 - [ ] Confirm the artifact can be extracted and run on a clean Windows 11 user profile.
 
-
 ## Thumbnail style library import/export
 
 - [ ] Save a thumbnail style preset, restart the app, and confirm the preset is still available.
@@ -51,9 +50,13 @@ This checklist separates CI success from real-device acceptance. A green compile
 - [ ] Try duplicate preset names inside one import file; confirm the import is rejected with a clear message.
 - [ ] Import presets whose names already exist; cancel the replacement prompt and confirm existing styles remain unchanged.
 - [ ] Repeat the name-collision import and approve replacement; confirm the intended styles are replaced.
+- [ ] For an import containing both new and existing names, verify the completion message reports the correct number added and replaced.
+- [ ] Import a library with only new names; verify the message reports all as added and zero replaced.
+- [ ] Import a library with only existing names and approve replacement; verify the message reports zero added and the correct replacement count.
+- [ ] Verify that canceling replacement leaves existing styles unchanged and no misleading completion message appears.
+- [ ] Verify a rejected/invalid batch does not partially add or replace styles.
 - [ ] Verify the export/share flow and file picker on Android phone, Android tablet and Windows.
 - [ ] Restart the app after import/replacement and confirm the saved library persists.
-
 
 ## Saved thumbnail style name-collision protection
 
