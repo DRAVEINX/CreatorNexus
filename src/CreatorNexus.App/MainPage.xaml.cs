@@ -1077,9 +1077,14 @@ public partial class MainPage : ContentPage
 
                 await styleStore.SaveManyAsync(imported.Select(style => style with { Name = style.Name.Trim() }));
 
+                var addedCount = imported.Count - collisions.Count;
+                var replacedCount = collisions.Count;
+                var resultMessage = _english
+                    ? $"Import complete: {addedCount} added, {replacedCount} replaced."
+                    : $"Importeren voltooid: {addedCount} toegevoegd, {replacedCount} vervangen.";
                 await DisplayAlertAsync(
                     _english ? "Style library imported" : "Stijlenbibliotheek geïmporteerd",
-                    _english ? $"{imported.Count} style(s) imported successfully." : $"{imported.Count} stijl(en) succesvol geïmporteerd.",
+                    resultMessage,
                     "OK");
             }
             catch (Exception ex)
