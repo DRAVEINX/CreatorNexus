@@ -67,6 +67,26 @@ public partial class MainPage : ContentPage
         ProjectCountLabel.Text = _english
             ? $"{_visibleProjects.Count} projects"
             : $"{_visibleProjects.Count} projecten";
+
+        if (_visibleProjects.Count > 0)
+            return;
+
+        var hasSearch = !string.IsNullOrWhiteSpace(ProjectSearchBar.Text);
+        if (hasSearch || _showFavoritesOnly || _showScheduleOnly)
+        {
+            EmptyTitleLabel.Text = _english ? "No matching projects" : "Geen projecten gevonden";
+            EmptySubtitleLabel.Text = _english
+                ? "Try another search term or turn off one of the active filters."
+                : "Probeer een andere zoekterm of schakel een actief filter uit.";
+            return;
+        }
+
+        EmptyTitleLabel.Text = _showArchived
+            ? (_english ? "No archived projects" : "Geen gearchiveerde projecten")
+            : (_english ? "No projects here yet" : "Hier staan nog geen projecten");
+        EmptySubtitleLabel.Text = _showArchived
+            ? (_english ? "Archived projects will appear here." : "Gearchiveerde projecten verschijnen hier.")
+            : (_english ? "Create your first creator project above." : "Maak hierboven je eerste creatorproject.");
     }
 
     private static CreatorProject CopyThumbnailDesign(CreatorProject source, CreatorProject target) => target with
@@ -2383,8 +2403,20 @@ public partial class MainPage : ContentPage
 
     private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        var projects = await _store.LoadAsync();
-        RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
+        try
+        {
+            var projects = await _store.LoadAsync();
+            RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                _english ? "Search failed" : "Zoeken mislukt",
+                _english
+                    ? "CreatorNexus could not read the saved projects. Your original data has been preserved. Details: " + ex.Message
+                    : "CreatorNexus kon de opgeslagen projecten niet lezen. Je oorspronkelijke gegevens zijn bewaard. Details: " + ex.Message,
+                "OK");
+        }
     }
 
     private async void OnExportBackupClicked(object sender, EventArgs e)
