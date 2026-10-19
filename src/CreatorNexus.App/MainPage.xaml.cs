@@ -2411,6 +2411,12 @@ public partial class MainPage : ContentPage
 
         try
         {
+            // Wait briefly so rapid typing triggers one disk read instead of one
+            // read per character. A newer keystroke cancels this pending search.
+            await Task.Delay(180);
+            if (requestVersion != _searchRequestVersion)
+                return;
+
             var projects = await _store.LoadAsync();
             if (requestVersion != _searchRequestVersion)
                 return;
