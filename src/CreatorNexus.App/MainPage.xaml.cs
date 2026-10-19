@@ -79,17 +79,24 @@ public partial class MainPage : ContentPage
             : $"{_visibleProjects.Count} projecten";
 
         if (_visibleProjects.Count > 0)
+        {
+            ClearFiltersButton.IsVisible = false;
             return;
+        }
 
         var hasSearch = !string.IsNullOrWhiteSpace(ProjectSearchBar.Text);
         if (hasSearch || _showFavoritesOnly || _showScheduleOnly)
         {
             EmptyTitleLabel.Text = _english ? "No matching projects" : "Geen projecten gevonden";
             EmptySubtitleLabel.Text = _english
-                ? "Try another search term or turn off one of the active filters."
-                : "Probeer een andere zoekterm of schakel een actief filter uit.";
+                ? "Try another search term or clear the active filters."
+                : "Probeer een andere zoekterm of wis de actieve filters.";
+            ClearFiltersButton.Text = _english ? "Clear search and filters" : "Zoekopdracht en filters wissen";
+            ClearFiltersButton.IsVisible = true;
             return;
         }
+
+        ClearFiltersButton.IsVisible = false;
 
         EmptyTitleLabel.Text = _showArchived
             ? (_english ? "No archived projects" : "Geen gearchiveerde projecten")
@@ -2420,6 +2427,19 @@ public partial class MainPage : ContentPage
             return;
 
         await _store.DeleteAsync(id);
+        await LoadProjectsAsync();
+    }
+
+    private async void OnClearFiltersClicked(object sender, EventArgs e)
+    {
+        _showFavoritesOnly = false;
+        _showScheduleOnly = false;
+        _showArchived = false;
+        ProjectSearchBar.Text = string.Empty;
+        FavoriteFilterButton.BackgroundColor = Color.FromArgb("#262638");
+        ScheduleViewButton.BackgroundColor = Color.FromArgb("#262638");
+        ProjectsHeading.Text = _english ? "Your projects" : "Jouw projecten";
+        ArchiveViewButton.Text = _english ? "Archive" : "Archief";
         await LoadProjectsAsync();
     }
 
