@@ -92,6 +92,9 @@ public partial class MainPage : ContentPage
                 ? "Try another search term or clear the active filters."
                 : "Probeer een andere zoekterm of wis de actieve filters.";
             ClearFiltersButton.Text = _english ? "Clear search and filters" : "Zoekopdracht en filters wissen";
+            SemanticProperties.SetDescription(ClearFiltersButton, _english
+                ? "Clear the search text and turn off the favorites, calendar and archive views to show active projects."
+                : "Wis de zoektekst en zet de favorieten-, kalender- en archiefweergave uit om actieve projecten te tonen.");
             ClearFiltersButton.IsVisible = true;
             return;
         }
