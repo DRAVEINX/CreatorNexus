@@ -13,6 +13,7 @@ public partial class MainPage : ContentPage
     private bool _showArchived;
     private bool _showFavoritesOnly;
     private bool _showScheduleOnly;
+    private bool _searchErrorShown;
 
     public MainPage()
     {
@@ -2406,10 +2407,17 @@ public partial class MainPage : ContentPage
         try
         {
             var projects = await _store.LoadAsync();
+            _searchErrorShown = false;
             RenderProjects(GetFilteredProjects(projects, e.NewTextValue));
         }
         catch (Exception ex)
         {
+            // TextChanged fires for each keystroke. Show one recovery alert per
+            // continuous failure, not a cascade of identical dialogs.
+            if (_searchErrorShown)
+                return;
+
+            _searchErrorShown = true;
             await DisplayAlertAsync(
                 _english ? "Search failed" : "Zoeken mislukt",
                 _english
