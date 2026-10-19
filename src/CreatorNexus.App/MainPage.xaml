@@ -37,12 +37,12 @@
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="6">
                     <Label x:Name="ProjectsHeading" Text="Jouw projecten" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource TextPrimary}" VerticalOptions="Center" />
                     <Label x:Name="ProjectCountLabel" Grid.Column="1" Text="0 projecten" FontSize="13" TextColor="{StaticResource TextMuted}" VerticalOptions="Center" />
-                    <Button x:Name="FavoriteFilterButton" Grid.Column="2" Text="★" Clicked="OnToggleFavoritesFilterClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="#FDE68A" CornerRadius="10" Padding="10,6" />
-                    <Button x:Name="ScheduleViewButton" Grid.Column="3" Text="📅" Clicked="OnToggleScheduleViewClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="10" Padding="10,6" />
-                    <Button x:Name="ArchiveViewButton" Grid.Column="4" Text="Archief" Clicked="OnToggleArchivedViewClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="10" Padding="10,6" />
+                    <Button x:Name="FavoriteFilterButton" Grid.Column="2" Text="★" SemanticProperties.Description="Favoriete projecten tonen / Show favorite projects" Clicked="OnToggleFavoritesFilterClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="#FDE68A" CornerRadius="10" Padding="10,6" />
+                    <Button x:Name="ScheduleViewButton" Grid.Column="3" Text="📅" SemanticProperties.Description="Geplande projecten tonen / Show scheduled projects" Clicked="OnToggleScheduleViewClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="10" Padding="10,6" />
+                    <Button x:Name="ArchiveViewButton" Grid.Column="4" Text="Archief" SemanticProperties.Description="Archief openen of sluiten / Open or close archive" Clicked="OnToggleArchivedViewClicked" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" CornerRadius="10" Padding="10,6" />
                 </Grid>
 
-                <SearchBar x:Name="ProjectSearchBar" Placeholder="Zoek projecten…" TextChanged="OnSearchTextChanged" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" PlaceholderColor="#9CA3AF" />
+                <SearchBar x:Name="ProjectSearchBar" Placeholder="Zoek projecten…" SemanticProperties.Description="Zoek in je projecten op titel, kanaal of inhoud / Search projects by title, channel or content" TextChanged="OnSearchTextChanged" BackgroundColor="{StaticResource PanelBackground}" TextColor="White" PlaceholderColor="#9CA3AF" />
 
                 <CollectionView x:Name="ProjectsCollection" SelectionMode="None">
                     <CollectionView.EmptyView>
