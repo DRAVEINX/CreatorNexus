@@ -27,13 +27,21 @@ public partial class MainPage : ContentPage
 
     private async Task LoadProjectsAsync()
     {
+        // A refresh/filter change supersedes any search still waiting or loading.
+        var requestVersion = ++_searchRequestVersion;
         try
         {
             var projects = await _store.LoadAsync();
+            if (requestVersion != _searchRequestVersion)
+                return;
+
             RenderProjects(GetFilteredProjects(projects, ProjectSearchBar.Text));
         }
         catch (Exception ex)
         {
+            if (requestVersion != _searchRequestVersion)
+                return;
+
             // Keep the UI responsive and explain the recovery path instead of leaving
             // a fire-and-forget startup task with an unhandled exception.
             RenderProjects(Array.Empty<CreatorProject>());
