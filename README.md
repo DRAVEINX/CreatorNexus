@@ -13,6 +13,8 @@ CreatorNexus is a standalone .NET MAUI app with a dark interface and Dutch/Engli
 - Start from reusable templates for YouTube videos, short-form videos, tutorials and livestreams.
 - Track per-project production checklists.
 - Edit thumbnail headline/subtitle and visual options, preview the design, use a custom image, and export PNG/JPG.
+- Save reusable thumbnail style presets; search, duplicate, replace, delete, import and export individual presets or the full style library as JSON.
+- Validate the saved style library before use and reject malformed, unsupported or duplicate stored styles rather than silently replacing the library.
 - Keep script/content notes and media references with a project.
 - Export projects to a portable JSON backup and restore a selected backup.
 - Validate backup version, checksum, size and project data before replacing saved projects.
@@ -56,6 +58,7 @@ Each successful Android workflow publishes APK/AAB build artifacts. Each success
 - Older bare JSON-array backups remain supported.
 - Invalid or oversized restore files are rejected before existing projects are replaced.
 - If the saved project file is malformed or fails validation, CreatorNexus reports a data-integrity error and preserves the original file rather than silently opening an empty library.
+- The thumbnail style library is validated before loading or modifying it. Bulk imports are validated as a batch and written atomically; invalid stored styles or duplicate stored names are rejected so a failed operation does not silently overwrite the original library.
 - A previous saved snapshot is retained as `creator-projects.json.bak` when a new snapshot is saved. The guided local recovery action validates the `.bak` snapshot before replacing the primary file and leaves the `.bak` recovery source intact. The action has CI build coverage, but still needs hands-on testing on real devices.
 
 ## Separation
