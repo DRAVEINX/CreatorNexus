@@ -1063,17 +1063,17 @@ public partial class MainPage : ContentPage
 
                 var existing = await styleStore.LoadAsync();
                 var collisions = imported.Where(x => existing.Any(y => string.Equals(y.Name, x.Name.Trim(), StringComparison.OrdinalIgnoreCase))).ToList();
-                if (collisions.Count > 0)
-                {
-                    var confirmed = await DisplayAlertAsync(
-                        _english ? "Replace matching styles?" : "Bestaande stijlen vervangen?",
-                        _english
-                            ? $"{collisions.Count} style name(s) already exist. Replace matching styles and add the rest?"
-                            : $"{collisions.Count} stijl(en) bestaan al. Bestaande stijlen vervangen en de rest toevoegen?",
-                        _english ? "Replace and import" : "Vervangen en importeren",
-                        _english ? "Cancel" : "Annuleren");
-                    if (!confirmed) return;
-                }
+                var addedPreviewCount = imported.Count - collisions.Count;
+                var replacedPreviewCount = collisions.Count;
+                var importSummary = _english
+                    ? $"Ready to import {imported.Count} style(s): {addedPreviewCount} new and {replacedPreviewCount} replacement(s)."
+                    : $"Klaar om {imported.Count} stijl(en) te importeren: {addedPreviewCount} nieuw en {replacedPreviewCount} vervanging(en).";
+                var confirmed = await DisplayAlertAsync(
+                    _english ? "Confirm style import" : "Importeren bevestigen",
+                    importSummary,
+                    _english ? "Import" : "Importeren",
+                    _english ? "Cancel" : "Annuleren");
+                if (!confirmed) return;
 
                 await styleStore.SaveManyAsync(imported.Select(style => style with { Name = style.Name.Trim() }));
 
