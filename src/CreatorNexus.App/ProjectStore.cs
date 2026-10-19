@@ -167,6 +167,12 @@ public sealed class ProjectStore
 
     private async Task SaveCoreAsync(IReadOnlyList<CreatorProject> projects)
     {
+        // Validate every write, not only imports, so malformed updates cannot replace
+        // a previously valid project file or become the next recovery snapshot.
+        var validationError = ProjectBackupRules.Validate(projects);
+        if (validationError is not null)
+            throw new InvalidDataException($"Project data was not saved: {validationError} Existing data was preserved.");
+
         Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
         var temp = _filePath + ".tmp";
         var backup = _filePath + ".bak";
